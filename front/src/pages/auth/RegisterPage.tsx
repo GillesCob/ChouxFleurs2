@@ -1,0 +1,183 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { useProject } from "@/context/ProjectContext";
+import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Flower2 } from "lucide-react";
+
+const buildSchema = (hasInviteToken: boolean) =>
+  z
+    .object({
+      name: z.string().min(2, "Nom trop court"),
+      email: z.string().email("Email invalide"),
+      projectName: hasInviteToken
+        ? z.string().optional()
+        : z.string().min(2, "Nom du projet requis (min. 2 caractères)"),
+      password: z.string().min(6, "Au moins 6 caractères"),
+      confirmPassword: z.string(),
+    })
+    .refine((d) => d.password === d.confirmPassword, {
+      message: "Les mots de passe ne correspondent pas",
+      path: ["confirmPassword"],
+    });
+
+type RegisterFormData = {
+  name: string;
+  email: string;
+  projectName?: string;
+  password: string;
+  confirmPassword: string;
+};
+
+export default function RegisterPage() {
+  const { register: authRegister } = useAuth();
+  const { refreshProjects } = useProject();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get("invite") ?? undefined;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(buildSchema(!!inviteToken)),
+  });
+
+  const onSubmit = async (data: RegisterFormData) => {
+    try {
+      await authRegister(data.name, data.email, data.password, data.projectName, inviteToken);
+      await refreshProjects();
+      navigate("/dashboard");
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Erreur d'inscription",
+        description:
+          err instanceof Error ? err.message : "Une erreur est survenue",
+      });
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1 text-center">
+          <div className="flex justify-center">
+            <Flower2 className="h-10 w-10 text-primary" />
+          </div>
+          <CardTitle className="text-2xl">
+            {inviteToken ? "Rejoindre un projet" : "Créer mon espace"}
+          </CardTitle>
+          <CardDescription>
+            {inviteToken
+              ? "Créez votre compte pour accéder au projet"
+              : "Inscrivez-vous et créez votre projet naissance"}
+          </CardDescription>
+        </CardHeader>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Votre prénom / nom</Label>
+              <Input id="name" placeholder="Marie Dupont" {...register("name")} />
+              {errors.name && (
+                <p className="text-xs text-destructive">{errors.name.message}</p>
+              )}
+            </div>
+
+            {!inviteToken && (
+              <div className="space-y-2">
+                <Label htmlFor="projectName">Nom de votre projet</Label>
+                <Input
+                  id="projectName"
+                  placeholder="Bébé Dupont 2025"
+                  {...register("projectName")}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Ce nom apparaîtra sur vos invitations.
+                </p>
+                {errors.projectName && (
+                  <p className="text-xs text-destructive">
+                    {errors.projectName.message}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="vous@exemple.fr"
+                {...register("email")}
+              />
+              {errors.email && (
+                <p className="text-xs text-destructive">{errors.email.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Mot de passe</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                {...register("password")}
+              />
+              {errors.password && (
+                <p className="text-xs text-destructive">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                {...register("confirmPassword")}
+              />
+              {errors.confirmPassword && (
+                <p className="text-xs text-destructive">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-3">
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting
+                ? "Création..."
+                : inviteToken
+                  ? "Créer mon compte et rejoindre"
+                  : "Créer mon espace"}
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              Déjà un compte ?{" "}
+              <Link
+                to={inviteToken ? `/login?invite=${inviteToken}` : "/login"}
+                className="text-primary hover:underline"
+              >
+                Se connecter
+              </Link>
+            </p>
+          </CardFooter>
+        </form>
+      </Card>
+    </div>
+  );
+}

@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.env
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Docker volumes
+mysql_data/
+
+# Prisma
+back/node_modules/
+front/node_modules/

@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  guest
+}
+
+enum BabyGender {
+  boy
+  girl
+  surprise
+}
+
+model User {
+  id             Int             @id @default(autoincrement())
+  name           String          @db.VarChar(100)
+  email          String          @unique @db.VarChar(150)
+  password       String
+  role           UserRole        @default(guest)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  ownedProjects  Project[]
+  memberships    ProjectMember[]
+  pronostics     Pronostic[]
+  birthListItems BirthListItem[]
+  contributions  Contribution[]
+}
+
+model Project {
+  id          Int             @id @default(autoincrement())
+  name        String          @db.VarChar(150)
+  inviteToken String          @unique @db.VarChar(36)
+  ownerId     Int
+  owner       User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  members     ProjectMember[]
+  birthResult BirthResult?
+  pronostics  Pronostic[]
+  birthList   BirthListItem[]
+  createdAt   DateTime        @default(now())
+}
+
+model ProjectMember {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  userId    Int
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime @default(now())
+
+  @@unique([projectId, userId])
+}
+
+model BirthResult {
+  id          Int      @id @default(autoincrement())
+  projectId   Int      @unique
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  gender      String   @db.VarChar(10)
+  birthDate   DateTime @db.Date
+  weightGrams Int
+  heightCm    Int
+  firstName   String   @db.VarChar(100)
+  revealedAt  DateTime @default(now())
+}
+
+model Pronostic {
+  id           Int        @id @default(autoincrement())
+  authorName   String     @db.VarChar(100)
+  gender       BabyGender
+  birthDate    DateTime   @db.Date
+  weightGrams  Int
+  heightCm     Int
+  firstName    String     @db.VarChar(100)
+  message      String?    @db.Text
+  score        Int?
+  scoreDetails Json?
+  projectId    Int
+  userId       Int?
+  project      Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user         User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt    DateTime   @default(now())
+}
+
+model BirthListItem {
+  id            Int            @id @default(autoincrement())
+  name          String         @db.VarChar(200)
+  price         Decimal        @db.Decimal(10, 2)
+  imageUrl      String         @db.Text
+  productUrl    String         @db.Text
+  description   String?        @db.Text
+  projectId     Int
+  createdById   Int?
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy     User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  contributions Contribution[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Contribution {
+  id              Int           @id @default(autoincrement())
+  amount          Decimal       @db.Decimal(10, 2)
+  participantName String        @db.VarChar(100)
+  birthListItemId Int
+  userId          Int?
+  birthListItem   BirthListItem @relation(fields: [birthListItemId], references: [id], onDelete: Cascade)
+  user            User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt       DateTime      @default(now())
+}

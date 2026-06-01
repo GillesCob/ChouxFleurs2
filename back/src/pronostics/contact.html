@@ -1,0 +1,34 @@
+<div class="contact-form">
+  <div class="row">
+    <!-- Colonne Nom -->
+    <div class="col-md-6">
+      <div class="form-group">
+        <label for="full-name">Nom et Prénom</label>
+        [text* your-name id:full-name class:form-control placeholder "Ex: Jean Dupont"]
+      </div>
+    </div>
+    <!-- Colonne Email -->
+    <div class="col-md-6">
+      <div class="form-group">
+        <label for="email">Adresse e-mail</label>
+        [email* your-email id:email class:form-control placeholder "Ex: jean.dupont@email.com"]
+      </div>
+    </div>
+  </div>
+
+  <!-- Sujet -->
+  <div class="form-group">
+    <label for="subject">Sujet du message</label>
+    [select* menu-subject id:subject class:form-control "Choisir un sujet" "Collaboration" "Questions sur mes projets"
+    "Contact presse" "Autre"]
+  </div>
+
+  <!-- Message -->
+  <div class="form-group">
+    <label for="message">Votre message</label>
+    [textarea* your-message id:message class:form-control x4 placeholder "Dites m'en un peu plus sur votre demande..."]
+  </div>
+
+  <!-- Bouton -->
+  <div class="form-btn">[submit class:btn class:btn-primary "Envoyer le message"]</div>
+</div>
