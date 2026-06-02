@@ -403,7 +403,7 @@ export default function PronosticsPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sortedPronostics.map((p, index) => {
+          {sortedPronostics.map((p) => {
             const isWinner = winner?.id === p.id;
             const gender = genderLabels[p.gender] ?? genderLabels.surprise;
             return (
