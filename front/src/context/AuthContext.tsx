@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import type { User, AuthResponse } from "@/types";
-import { api } from "@/lib/api";
+import { api, USE_MOCK } from "@/lib/api";
 
 interface AuthContextValue {
   user: User | null;
@@ -31,6 +31,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadCurrentUser = useCallback(async () => {
+    if (USE_MOCK) {
+      const me = await api.get<User>("/auth/me");
+      setUser(me);
+      setIsLoading(false);
+      return;
+    }
     const token = localStorage.getItem("token");
     if (!token) {
       setIsLoading(false);
