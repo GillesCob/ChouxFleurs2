@@ -11,34 +11,11 @@ import type { Project } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Check,
-  Flower2,
-  Gift,
-  Link2,
-  Loader2,
-  Lock,
-  Plus,
-  Sparkles,
-  Trophy,
-  Users,
-} from "lucide-react";
+import { Check, Flower2, Gift, Link2, Loader2, Lock, Plus, Sparkles, Trophy, Users } from "lucide-react";
 
 const newProjectSchema = z.object({
   name: z.string().min(2, "Au moins 2 caractères"),
@@ -47,8 +24,7 @@ type NewProjectForm = z.infer<typeof newProjectSchema>;
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { currentProject, isProjectOwner, isLoading, refreshProjects, setCurrentProjectId } =
-    useProject();
+  const { currentProject, isProjectOwner, isLoading, refreshProjects, setCurrentProjectId } = useProject();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
@@ -60,9 +36,7 @@ export default function DashboardPage() {
     formState: { errors, isSubmitting },
   } = useForm<NewProjectForm>({ resolver: zodResolver(newProjectSchema) });
 
-  const inviteUrl = currentProject
-    ? `${window.location.origin}/invite/${currentProject.inviteToken}`
-    : null;
+  const inviteUrl = currentProject ? `${window.location.origin}/invite/${currentProject.inviteToken}` : null;
 
   const copyInviteLink = async () => {
     if (!inviteUrl) return;
@@ -104,13 +78,7 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Bonjour, {user?.name} !
-          </h1>
-          <p className="text-muted-foreground">
-            Bienvenue sur ChouxFleurs
-            {currentProject ? ` — ${currentProject.name}` : ""}.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">Bonjour, {user?.name} !</h1>
         </div>
 
         {/* Créer un nouveau projet — accessible à tous */}
@@ -128,14 +96,8 @@ export default function DashboardPage() {
             <form onSubmit={handleSubmit(onCreateProject)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="projectName">Nom du projet</Label>
-                <Input
-                  id="projectName"
-                  placeholder="Bébé Martin 2026"
-                  {...register("name")}
-                />
-                {errors.name && (
-                  <p className="text-xs text-destructive">{errors.name.message}</p>
-                )}
+                <Input id="projectName" placeholder="Bébé Martin 2026" {...register("name")} />
+                {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
               </div>
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Création..." : "Créer le projet"}
@@ -179,18 +141,65 @@ export default function DashboardPage() {
       )}
 
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-pink-400 to-purple-500 p-8 text-white">
+      {/* <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-pink-400 to-purple-500 p-8 text-white">
         <div className="relative z-10 space-y-2">
           <div className="flex items-center gap-2 text-white/80">
             <Flower2 className="h-5 w-5" />
             <span className="text-sm font-medium">Un bébé arrive !</span>
           </div>
           <h2 className="text-2xl font-bold">Faites vos pronostics</h2>
-          <p className="text-white/90">
-            Devinez le prénom, le sexe, le poids et la date de naissance.
-          </p>
+          <p className="text-white/90">Devinez le prénom, le sexe, le poids et la date de naissance.</p>
         </div>
         <Flower2 className="absolute -right-8 -top-8 h-48 w-48 rotate-12 text-white/10" />
+      </div> */}
+
+      <Separator />
+
+      {/* Navigation rapide */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card className="cursor-pointer transition-shadow hover:shadow-md" onClick={() => navigate("/pronostics")}>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-purple-100 p-2">
+                <Sparkles className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <CardTitle>Pronostics</CardTitle>
+                <CardDescription>Tentez votre chance !</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Proposez vos pronostics sur le prénom, le sexe, la date, le poids et la taille du bébé.
+            </p>
+            <Button className="mt-4 w-full" variant="outline">
+              Voir les pronostics
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer transition-shadow hover:shadow-md" onClick={() => navigate("/liste-naissance")}>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-pink-100 p-2">
+                <Gift className="h-6 w-6 text-pink-600" />
+              </div>
+              <div>
+                <CardTitle>Liste de naissance</CardTitle>
+                <CardDescription>Offrez avec le cœur</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Découvrez la liste de cadeaux et réservez un article pour faire plaisir aux heureux parents.
+            </p>
+            <Button className="mt-4 w-full" variant="outline">
+              Voir la liste
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Lien d'invitation — propriétaire uniquement */}
@@ -199,17 +208,13 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2">
             <Link2 className="h-4 w-4 text-primary" />
             <h2 className="font-semibold">Inviter des amis</h2>
-            {!isProjectOwner && (
-              <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-            )}
+            {!isProjectOwner && <Lock className="h-3.5 w-3.5 text-muted-foreground" />}
           </div>
 
           {isProjectOwner ? (
             <>
               <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-3">
-                <code className="flex-1 select-all truncate text-sm text-muted-foreground">
-                  {inviteUrl}
-                </code>
+                <code className="flex-1 select-all truncate text-sm text-muted-foreground">{inviteUrl}</code>
                 <Button size="sm" onClick={copyInviteLink} className="shrink-0 gap-2">
                   {copied ? (
                     <>
@@ -242,63 +247,6 @@ export default function DashboardPage() {
           )}
         </div>
       )}
-
-      <Separator />
-
-      {/* Navigation rapide */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card
-          className="cursor-pointer transition-shadow hover:shadow-md"
-          onClick={() => navigate("/pronostics")}
-        >
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-purple-100 p-2">
-                <Sparkles className="h-6 w-6 text-purple-600" />
-              </div>
-              <div>
-                <CardTitle>Pronostics</CardTitle>
-                <CardDescription>Tentez votre chance !</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Proposez vos pronostics sur le prénom, le sexe, la date, le poids
-              et la taille du bébé.
-            </p>
-            <Button className="mt-4 w-full" variant="outline">
-              Voir les pronostics
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="cursor-pointer transition-shadow hover:shadow-md"
-          onClick={() => navigate("/liste-naissance")}
-        >
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-pink-100 p-2">
-                <Gift className="h-6 w-6 text-pink-600" />
-              </div>
-              <div>
-                <CardTitle>Liste de naissance</CardTitle>
-                <CardDescription>Offrez avec le cœur</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Découvrez la liste de cadeaux et réservez un article pour faire
-              plaisir aux heureux parents.
-            </p>
-            <Button className="mt-4 w-full" variant="outline">
-              Voir la liste
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
