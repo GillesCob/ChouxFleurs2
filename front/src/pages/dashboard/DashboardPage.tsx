@@ -15,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, Flower2, Gift, Link2, Loader2, Lock, Plus, Sparkles, Trophy, Users } from "lucide-react";
+import { Check, Gift, Link2, Loader2, Lock, Plus, Sparkles, Trophy, Users } from "lucide-react";
 
 const newProjectSchema = z.object({
   name: z.string().min(2, "Au moins 2 caractères"),

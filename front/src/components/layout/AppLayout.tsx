@@ -5,7 +5,7 @@ import { useProject } from "@/context/ProjectContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Flower2, Gift, LayoutDashboard, LogOut, Settings, Sparkles, Trophy, ChevronDown } from "lucide-react";
+import { Gift, LayoutDashboard, LogOut, Settings, Sparkles, Trophy, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
