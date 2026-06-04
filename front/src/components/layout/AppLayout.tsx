@@ -54,7 +54,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-50 border-b bg-white/90 backdrop-blur">
         <div className="container flex h-16 items-center justify-between gap-4">
           <Link to="/dashboard" className="flex items-center gap-2 shrink-0">
-            <img src="/public/Chouxfleur2noir.png" alt="ChouxFleurs2" className="h-20 w-20" />{" "}
+            <img src="/Chouxfleur2noir.png" alt="ChouxFleurs2" className="h-20 w-20" />{" "}
             <span className="text-lg font-semibold text-tertiary">ChouxFleurs</span>
           </Link>
 
