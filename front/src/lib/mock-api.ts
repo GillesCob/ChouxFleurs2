@@ -1,23 +1,23 @@
 import type {
-  User,
-  Project,
-  Pronostic,
-  BirthListItem,
-  Contribution,
-  RevealResultDto,
-  CreatePronosticDto,
-  CreateContributionDto,
-  CreateBirthListItemDto,
-} from "@/types";
+  IUser,
+  IProject,
+  IPronostic,
+  IBirthListItem,
+  IContribution,
+  IRevealResultDto,
+  ICreatePronosticDto,
+  ICreateContributionDto,
+  ICreateBirthListItemDto,
+} from '@/types';
 
 // ─── Utilisateur courant ──────────────────────────────────────────────────────
 
-const MOCK_USER: User = {
+const MOCK_USER: IUser = {
   id: 1,
-  email: "gilles@example.com",
-  name: "Gilles",
-  role: "admin",
-  createdAt: "2026-01-01T00:00:00.000Z",
+  email: 'gilles@example.com',
+  name: 'Gilles',
+  role: 'admin',
+  createdAt: '2026-01-01T00:00:00.000Z',
 };
 
 // ─── Compteur d'IDs pour les nouvelles entités ────────────────────────────────
@@ -27,226 +27,226 @@ const uid = () => ++nextId;
 
 // ─── Projets ──────────────────────────────────────────────────────────────────
 
-const projects: Project[] = [
+const projects: IProject[] = [
   {
     id: 1,
-    name: "Notre Bébé",
-    inviteToken: "token-notre-bebe",
-    owner: { id: 1, name: "Gilles" },
+    name: 'Notre Bébé',
+    inviteToken: 'token-notre-bebe',
+    owner: { id: 1, name: 'Gilles' },
     birthResult: null,
     winner: null,
     memberCount: 5,
-    createdAt: "2026-01-15T00:00:00.000Z",
+    createdAt: '2026-01-15T00:00:00.000Z',
   },
   {
     id: 2,
-    name: "Bébé Martin",
-    inviteToken: "token-bebe-martin",
-    owner: { id: 2, name: "Sophie" },
+    name: 'Bébé Martin',
+    inviteToken: 'token-bebe-martin',
+    owner: { id: 2, name: 'Sophie' },
     birthResult: null,
     winner: null,
     memberCount: 4,
-    createdAt: "2026-02-01T00:00:00.000Z",
+    createdAt: '2026-02-01T00:00:00.000Z',
   },
 ];
 
 // ─── Pronostics (par projectId) ───────────────────────────────────────────────
 
-const pronosticsStore: Record<number, Pronostic[]> = {
+const pronosticsStore: Record<number, IPronostic[]> = {
   1: [
     {
       id: 1,
-      authorName: "Gilles",
-      gender: "boy",
-      birthDate: "2026-06-15",
+      authorName: 'Gilles',
+      gender: 'boy',
+      birthDate: '2026-06-15',
       weightGrams: 3200,
       heightCm: 50,
-      firstName: "Emma",
-      message: "Allez les garçons !",
+      firstName: 'Emma',
+      message: 'Allez les garçons !',
       score: null,
       scoreDetails: null,
-      createdAt: "2026-03-01T10:00:00.000Z",
+      createdAt: '2026-03-01T10:00:00.000Z',
     },
     {
       id: 2,
-      authorName: "Alice",
-      gender: "girl",
-      birthDate: "2026-06-20",
+      authorName: 'Alice',
+      gender: 'girl',
+      birthDate: '2026-06-20',
       weightGrams: 3000,
       heightCm: 48,
-      firstName: "Léa",
-      message: "Je sens que c'est une fille !",
+      firstName: 'Léa',
+      message: 'Je sens que c\'est une fille !',
       score: null,
       scoreDetails: null,
-      createdAt: "2026-03-05T14:30:00.000Z",
+      createdAt: '2026-03-05T14:30:00.000Z',
     },
     {
       id: 3,
-      authorName: "Bob",
-      gender: "surprise",
-      birthDate: "2026-06-10",
+      authorName: 'Bob',
+      gender: 'surprise',
+      birthDate: '2026-06-10',
       weightGrams: 3500,
       heightCm: 51,
-      firstName: "Hugo",
+      firstName: 'Hugo',
       score: null,
       scoreDetails: null,
-      createdAt: "2026-03-08T09:15:00.000Z",
+      createdAt: '2026-03-08T09:15:00.000Z',
     },
     {
       id: 4,
-      authorName: "Charlotte",
-      gender: "girl",
-      birthDate: "2026-06-25",
+      authorName: 'Charlotte',
+      gender: 'girl',
+      birthDate: '2026-06-25',
       weightGrams: 2900,
       heightCm: 49,
-      firstName: "Chloé",
-      message: "Fille à coup sûr !",
+      firstName: 'Chloé',
+      message: 'Fille à coup sûr !',
       score: null,
       scoreDetails: null,
-      createdAt: "2026-03-10T16:45:00.000Z",
+      createdAt: '2026-03-10T16:45:00.000Z',
     },
     {
       id: 5,
-      authorName: "David",
-      gender: "boy",
-      birthDate: "2026-06-18",
+      authorName: 'David',
+      gender: 'boy',
+      birthDate: '2026-06-18',
       weightGrams: 3400,
       heightCm: 52,
-      firstName: "Théo",
+      firstName: 'Théo',
       score: null,
       scoreDetails: null,
-      createdAt: "2026-03-12T11:00:00.000Z",
+      createdAt: '2026-03-12T11:00:00.000Z',
     },
   ],
   2: [
     {
       id: 6,
-      authorName: "Gilles",
-      gender: "boy",
-      birthDate: "2026-07-10",
+      authorName: 'Gilles',
+      gender: 'boy',
+      birthDate: '2026-07-10',
       weightGrams: 3100,
       heightCm: 50,
-      firstName: "Lucas",
-      message: "Bonne chance Sophie et Thomas !",
+      firstName: 'Lucas',
+      message: 'Bonne chance Sophie et Thomas !',
       score: null,
       scoreDetails: null,
-      createdAt: "2026-04-01T10:00:00.000Z",
+      createdAt: '2026-04-01T10:00:00.000Z',
     },
   ],
 };
 
 // ─── Liste de naissance (par projectId) ──────────────────────────────────────
 
-const birthListStore: Record<number, BirthListItem[]> = {
+const birthListStore: Record<number, IBirthListItem[]> = {
   1: [
     {
       id: 10,
-      name: "Poussette 3-en-1",
+      name: 'Poussette 3-en-1',
       price: 599,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Poussette",
-      productUrl: "https://example.com",
-      description: "Poussette modulable : nacelle + siège + cosy",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Poussette',
+      productUrl: 'https://example.com',
+      description: 'Poussette modulable : nacelle + siège + cosy',
       contributions: [
-        { id: 101, amount: 150, participantName: "Gilles", userId: 1, createdAt: "2026-03-15T10:00:00.000Z" },
+        { id: 101, amount: 150, participantName: 'Gilles', userId: 1, createdAt: '2026-03-15T10:00:00.000Z' },
       ],
-      createdAt: "2026-01-20T00:00:00.000Z",
+      createdAt: '2026-01-20T00:00:00.000Z',
     },
     {
       id: 11,
-      name: "Lit à barreaux évolutif",
+      name: 'Lit à barreaux évolutif',
       price: 349,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Lit",
-      productUrl: "https://example.com",
-      description: "Convertible en lit junior jusqu'à 6 ans",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Lit',
+      productUrl: 'https://example.com',
+      description: 'Convertible en lit junior jusqu\'à 6 ans',
       contributions: [
-        { id: 102, amount: 100, participantName: "Alice", userId: null, createdAt: "2026-03-16T10:00:00.000Z" },
+        { id: 102, amount: 100, participantName: 'Alice', userId: null, createdAt: '2026-03-16T10:00:00.000Z' },
       ],
-      createdAt: "2026-01-20T00:00:00.000Z",
+      createdAt: '2026-01-20T00:00:00.000Z',
     },
     {
       id: 12,
-      name: "Transat bébé",
+      name: 'Transat bébé',
       price: 89,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Transat",
-      productUrl: "https://example.com",
-      description: "Transat vibrant avec mélodie intégrée",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Transat',
+      productUrl: 'https://example.com',
+      description: 'Transat vibrant avec mélodie intégrée',
       contributions: [
-        { id: 103, amount: 89, participantName: "Bob", userId: null, createdAt: "2026-03-17T10:00:00.000Z" },
+        { id: 103, amount: 89, participantName: 'Bob', userId: null, createdAt: '2026-03-17T10:00:00.000Z' },
       ],
-      createdAt: "2026-01-20T00:00:00.000Z",
+      createdAt: '2026-01-20T00:00:00.000Z',
     },
     {
       id: 13,
-      name: "Babyphone vidéo",
+      name: 'Babyphone vidéo',
       price: 189,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Babyphone",
-      productUrl: "https://example.com",
-      description: "Caméra HD avec vision nocturne et talkie-walkie",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Babyphone',
+      productUrl: 'https://example.com',
+      description: 'Caméra HD avec vision nocturne et talkie-walkie',
       contributions: [
-        { id: 104, amount: 50, participantName: "Charlotte", userId: null, createdAt: "2026-03-18T10:00:00.000Z" },
+        { id: 104, amount: 50, participantName: 'Charlotte', userId: null, createdAt: '2026-03-18T10:00:00.000Z' },
       ],
-      createdAt: "2026-01-20T00:00:00.000Z",
+      createdAt: '2026-01-20T00:00:00.000Z',
     },
     {
       id: 14,
-      name: "Siège auto groupe 0+",
+      name: 'Siège auto groupe 0+',
       price: 199,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Siege+auto",
-      productUrl: "https://example.com",
-      description: "0 à 13 kg, homologué i-Size",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Siege+auto',
+      productUrl: 'https://example.com',
+      description: '0 à 13 kg, homologué i-Size',
       contributions: [
-        { id: 105, amount: 80, participantName: "David", userId: null, createdAt: "2026-03-19T10:00:00.000Z" },
+        { id: 105, amount: 80, participantName: 'David', userId: null, createdAt: '2026-03-19T10:00:00.000Z' },
       ],
-      createdAt: "2026-01-20T00:00:00.000Z",
+      createdAt: '2026-01-20T00:00:00.000Z',
     },
     {
       id: 15,
-      name: "Chaise haute évolutive",
+      name: 'Chaise haute évolutive',
       price: 249,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Chaise+haute",
-      productUrl: "https://example.com",
-      description: "Réglable en hauteur, plateau amovible",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Chaise+haute',
+      productUrl: 'https://example.com',
+      description: 'Réglable en hauteur, plateau amovible',
       contributions: [],
-      createdAt: "2026-01-20T00:00:00.000Z",
+      createdAt: '2026-01-20T00:00:00.000Z',
     },
     {
       id: 16,
-      name: "Baignoire avec support",
+      name: 'Baignoire avec support',
       price: 59,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Baignoire",
-      productUrl: "https://example.com",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Baignoire',
+      productUrl: 'https://example.com',
       contributions: [],
-      createdAt: "2026-01-20T00:00:00.000Z",
+      createdAt: '2026-01-20T00:00:00.000Z',
     },
     {
       id: 17,
-      name: "Mobile musical",
+      name: 'Mobile musical',
       price: 45,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Mobile",
-      productUrl: "https://example.com",
-      description: "3 mélodies et lumières douces",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Mobile',
+      productUrl: 'https://example.com',
+      description: '3 mélodies et lumières douces',
       contributions: [],
-      createdAt: "2026-01-20T00:00:00.000Z",
+      createdAt: '2026-01-20T00:00:00.000Z',
     },
     {
       id: 18,
       name: "Tapis d'éveil",
       price: 79,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Tapis+eveil",
-      productUrl: "https://example.com",
-      description: "Arche et jouets détachables",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Tapis+eveil',
+      productUrl: 'https://example.com',
+      description: 'Arche et jouets détachables',
       contributions: [],
-      createdAt: "2026-01-20T00:00:00.000Z",
+      createdAt: '2026-01-20T00:00:00.000Z',
     },
     {
       id: 19,
-      name: "Gigoteuse TOG 2.5",
+      name: 'Gigoteuse TOG 2.5',
       price: 39,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Gigoteuse",
-      productUrl: "https://example.com",
-      description: "Taille 6-18 mois",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Gigoteuse',
+      productUrl: 'https://example.com',
+      description: 'Taille 6-18 mois',
       contributions: [],
-      createdAt: "2026-01-20T00:00:00.000Z",
+      createdAt: '2026-01-20T00:00:00.000Z',
     },
   ],
   2: [
@@ -254,59 +254,59 @@ const birthListStore: Record<number, BirthListItem[]> = {
       id: 20,
       name: "Portique d'éveil",
       price: 129,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Portique",
-      productUrl: "https://example.com",
-      description: "Sons, lumières et hochets détachables",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Portique',
+      productUrl: 'https://example.com',
+      description: 'Sons, lumières et hochets détachables',
       contributions: [
-        { id: 201, amount: 40, participantName: "Gilles", userId: 1, createdAt: "2026-04-10T10:00:00.000Z" },
+        { id: 201, amount: 40, participantName: 'Gilles', userId: 1, createdAt: '2026-04-10T10:00:00.000Z' },
       ],
-      createdAt: "2026-02-05T00:00:00.000Z",
+      createdAt: '2026-02-05T00:00:00.000Z',
     },
     {
       id: 21,
       name: "Coussin d'allaitement",
       price: 69,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Coussin",
-      productUrl: "https://example.com",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Coussin',
+      productUrl: 'https://example.com',
       contributions: [],
-      createdAt: "2026-02-05T00:00:00.000Z",
+      createdAt: '2026-02-05T00:00:00.000Z',
     },
     {
       id: 22,
-      name: "Stérilisateur biberon",
+      name: 'Stérilisateur biberon',
       price: 89,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Sterilisateur",
-      productUrl: "https://example.com",
-      description: "Compatible tous types de biberons",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Sterilisateur',
+      productUrl: 'https://example.com',
+      description: 'Compatible tous types de biberons',
       contributions: [],
-      createdAt: "2026-02-05T00:00:00.000Z",
+      createdAt: '2026-02-05T00:00:00.000Z',
     },
     {
       id: 23,
-      name: "Porte-bébé ergonomique",
+      name: 'Porte-bébé ergonomique',
       price: 149,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Porte-bebe",
-      productUrl: "https://example.com",
-      description: "Positions face à face et dos à dos",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Porte-bebe',
+      productUrl: 'https://example.com',
+      description: 'Positions face à face et dos à dos',
       contributions: [],
-      createdAt: "2026-02-05T00:00:00.000Z",
+      createdAt: '2026-02-05T00:00:00.000Z',
     },
     {
       id: 24,
-      name: "Veilleuse projection",
+      name: 'Veilleuse projection',
       price: 39,
-      imageUrl: "https://placehold.co/400x300/fdf2f8/9d174d?text=Veilleuse",
-      productUrl: "https://example.com",
-      description: "Projection étoiles au plafond",
+      imageUrl: 'https://placehold.co/400x300/fdf2f8/9d174d?text=Veilleuse',
+      productUrl: 'https://example.com',
+      description: 'Projection étoiles au plafond',
       contributions: [],
-      createdAt: "2026-02-05T00:00:00.000Z",
+      createdAt: '2026-02-05T00:00:00.000Z',
     },
   ],
 };
 
 // ─── Calcul de score ──────────────────────────────────────────────────────────
 
-function calcScore(p: Pronostic, result: RevealResultDto) {
+function calcScore(p: IPronostic, result: IRevealResultDto) {
   let gender = 0;
   let firstName = 0;
   let birthDate = 0;
@@ -347,28 +347,28 @@ export async function mockFetch<T>(
 ): Promise<T> {
   await new Promise<void>((r) => setTimeout(r, 80));
 
-  const [pathname, queryString] = path.split("?");
-  const params = new URLSearchParams(queryString ?? "");
+  const [pathname, queryString] = path.split('?');
+  const params = new URLSearchParams(queryString ?? '');
 
   // Auth
-  if (method === "GET" && pathname === "/auth/me") {
+  if (method === 'GET' && pathname === '/auth/me') {
     return MOCK_USER as T;
   }
-  if (method === "POST" && (pathname === "/auth/login" || pathname === "/auth/register")) {
-    return { access_token: "mock-token", user: MOCK_USER } as unknown as T;
+  if (method === 'POST' && (pathname === '/auth/login' || pathname === '/auth/register')) {
+    return { access_token: 'mock-token', user: MOCK_USER } as unknown as T;
   }
 
   // Projets
-  if (method === "GET" && pathname === "/projects/my") {
+  if (method === 'GET' && pathname === '/projects/my') {
     return projects as unknown as T;
   }
-  if (method === "POST" && pathname === "/projects") {
+  if (method === 'POST' && pathname === '/projects') {
     const { name } = body as { name: string };
-    const newProject: Project = {
+    const newProject: IProject = {
       id: uid(),
       name,
       inviteToken: `token-${Date.now()}`,
-      owner: { id: 1, name: "Gilles" },
+      owner: { id: 1, name: 'Gilles' },
       birthResult: null,
       winner: null,
       memberCount: 1,
@@ -380,13 +380,26 @@ export async function mockFetch<T>(
     return newProject as unknown as T;
   }
 
+  // Invitation
+  const inviteInfoMatch = pathname.match(/^\/projects\/invite\/(.+)$/);
+  if (method === 'GET' && inviteInfoMatch) {
+    const token = inviteInfoMatch[1];
+    const project = projects.find((p) => p.inviteToken === token);
+    if (!project) throw new Error('Lien invalide ou expiré');
+    return { id: project.id, name: project.name, owner: project.owner } as unknown as T;
+  }
+  const joinMatch = pathname.match(/^\/projects\/join\/(.+)$/);
+  if (method === 'POST' && joinMatch) {
+    return {} as T;
+  }
+
   // Révéler les résultats
   const resultMatch = pathname.match(/^\/projects\/(\d+)\/result$/);
-  if (method === "POST" && resultMatch) {
+  if (method === 'POST' && resultMatch) {
     const projectId = parseInt(resultMatch[1]);
-    const dto = body as RevealResultDto;
+    const dto = body as IRevealResultDto;
     const project = projects.find((p) => p.id === projectId);
-    if (!project) throw new Error("Projet introuvable");
+    if (!project) throw new Error('Projet introuvable');
 
     project.birthResult = { id: uid(), ...dto, revealedAt: new Date().toISOString() };
 
@@ -404,13 +417,13 @@ export async function mockFetch<T>(
   }
 
   // Pronostics
-  if (method === "GET" && pathname === "/pronostics") {
-    const projectId = parseInt(params.get("projectId") ?? "0");
+  if (method === 'GET' && pathname === '/pronostics') {
+    const projectId = parseInt(params.get('projectId') ?? '0');
     return (pronosticsStore[projectId] ?? []) as unknown as T;
   }
-  if (method === "POST" && pathname === "/pronostics") {
-    const dto = body as CreatePronosticDto;
-    const newP: Pronostic = {
+  if (method === 'POST' && pathname === '/pronostics') {
+    const dto = body as ICreatePronosticDto;
+    const newP: IPronostic = {
       id: uid(),
       authorName: dto.authorName,
       gender: dto.gender,
@@ -428,7 +441,7 @@ export async function mockFetch<T>(
     return newP as unknown as T;
   }
   const pronosticMatch = pathname.match(/^\/pronostics\/(\d+)$/);
-  if (method === "DELETE" && pronosticMatch) {
+  if (method === 'DELETE' && pronosticMatch) {
     const id = parseInt(pronosticMatch[1]);
     for (const arr of Object.values(pronosticsStore)) {
       const idx = arr.findIndex((p) => p.id === id);
@@ -438,13 +451,13 @@ export async function mockFetch<T>(
   }
 
   // Liste de naissance
-  if (method === "GET" && pathname === "/birth-list") {
-    const projectId = parseInt(params.get("projectId") ?? "0");
+  if (method === 'GET' && pathname === '/birth-list') {
+    const projectId = parseInt(params.get('projectId') ?? '0');
     return (birthListStore[projectId] ?? []) as unknown as T;
   }
-  if (method === "POST" && pathname === "/birth-list") {
-    const dto = body as CreateBirthListItemDto;
-    const newItem: BirthListItem = {
+  if (method === 'POST' && pathname === '/birth-list') {
+    const dto = body as ICreateBirthListItemDto;
+    const newItem: IBirthListItem = {
       id: uid(),
       name: dto.name,
       price: dto.price,
@@ -461,13 +474,13 @@ export async function mockFetch<T>(
 
   // Contributions
   const contribPostMatch = pathname.match(/^\/birth-list\/(\d+)\/contributions$/);
-  if (method === "POST" && contribPostMatch) {
+  if (method === 'POST' && contribPostMatch) {
     const itemId = parseInt(contribPostMatch[1]);
-    const dto = body as CreateContributionDto;
-    const newC: Contribution = {
+    const dto = body as ICreateContributionDto;
+    const newC: IContribution = {
       id: uid(),
       amount: dto.amount,
-      participantName: dto.participantName ?? "Anonyme",
+      participantName: dto.participantName ?? 'Anonyme',
       userId: 1,
       createdAt: new Date().toISOString(),
     };
@@ -478,7 +491,7 @@ export async function mockFetch<T>(
     return newC as unknown as T;
   }
   const contribDeleteMatch = pathname.match(/^\/birth-list\/contributions\/(\d+)$/);
-  if (method === "DELETE" && contribDeleteMatch) {
+  if (method === 'DELETE' && contribDeleteMatch) {
     const id = parseInt(contribDeleteMatch[1]);
     for (const arr of Object.values(birthListStore)) {
       for (const item of arr) {
@@ -489,7 +502,7 @@ export async function mockFetch<T>(
     return {} as T;
   }
   const birthListDeleteMatch = pathname.match(/^\/birth-list\/(\d+)$/);
-  if (method === "DELETE" && birthListDeleteMatch) {
+  if (method === 'DELETE' && birthListDeleteMatch) {
     const id = parseInt(birthListDeleteMatch[1]);
     for (const projectId of Object.keys(birthListStore)) {
       const arr = birthListStore[parseInt(projectId)];
@@ -500,7 +513,7 @@ export async function mockFetch<T>(
   }
 
   // Admin
-  if (method === "GET" && pathname === "/users") {
+  if (method === 'GET' && pathname === '/users') {
     return [MOCK_USER] as unknown as T;
   }
 

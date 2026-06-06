@@ -1,48 +1,33 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { useProject } from "@/context/ProjectContext";
-import { api } from "@/lib/api";
-import { toast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
+import { useEffect } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
+import { useInviteInfoQuery } from '@/hooks/useInviteInfoQuery';
+import { useJoinProjectMutation } from '@/hooks/useJoinProjectMutation';
+import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Baby, LogIn, UserPlus } from "lucide-react";
-
-interface InviteInfo {
-  id: number;
-  name: string;
-  owner: { name: string };
-}
+} from '@/components/ui/card';
+import { Baby, LogIn, UserPlus } from 'lucide-react';
 
 export default function InvitePage() {
   const { token } = useParams<{ token: string }>();
-  const { user } = useAuth();
-  const { refreshProjects } = useProject();
+  const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
-  const [info, setInfo] = useState<InviteInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isJoining, setIsJoining] = useState(false);
+  const joinProjectMutation = useJoinProjectMutation();
+
+  const { data: info, isLoading, isError } = useInviteInfoQuery(token);
 
   useEffect(() => {
-    if (!token) {
-      navigate("/login");
-      return;
+    if (isError) {
+      toast({ variant: 'destructive', title: 'Lien invalide ou expiré' });
+      navigate('/login');
     }
-    api
-      .get<InviteInfo>(`/projects/invite/${token}`)
-      .then(setInfo)
-      .catch(() => {
-        toast({ variant: "destructive", title: "Lien invalide ou expiré" });
-        navigate("/login");
-      })
-      .finally(() => setIsLoading(false));
-  }, [token, navigate]);
+  }, [isError, navigate]);
 
   useEffect(() => {
     if (user && info) {
@@ -52,20 +37,16 @@ export default function InvitePage() {
 
   const handleJoin = async () => {
     if (!token) return;
-    setIsJoining(true);
     try {
-      await api.post(`/projects/join/${token}`, {});
-      await refreshProjects();
-      toast({ title: "Projet rejoint !", description: `Bienvenue dans "${info?.name}"` });
-      navigate("/dashboard");
+      await joinProjectMutation.mutateAsync(token);
+      toast({ title: 'Projet rejoint !', description: `Bienvenue dans "${info?.name}"` });
+      navigate('/dashboard');
     } catch (err) {
       toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: err instanceof Error ? err.message : "Impossible de rejoindre le projet",
+        variant: 'destructive',
+        title: 'Erreur',
+        description: err instanceof Error ? err.message : 'Impossible de rejoindre le projet',
       });
-    } finally {
-      setIsJoining(false);
     }
   };
 
@@ -90,7 +71,7 @@ export default function InvitePage() {
           </div>
           <CardTitle className="text-2xl">Vous êtes invité !</CardTitle>
           <CardDescription className="text-base">
-            <span className="font-medium text-foreground">{info.owner.name}</span>{" "}
+            <span className="font-medium text-foreground">{info.owner.name}</span>{' '}
             vous invite à rejoindre le projet
           </CardDescription>
           <div className="rounded-lg bg-primary/5 px-4 py-3">
@@ -99,8 +80,12 @@ export default function InvitePage() {
         </CardHeader>
         <CardContent className="space-y-3">
           {user ? (
-            <Button className="w-full" onClick={handleJoin} disabled={isJoining}>
-              {isJoining ? "Rejoindre en cours..." : "Rejoindre le projet"}
+            <Button
+              className="w-full"
+              onClick={handleJoin}
+              disabled={joinProjectMutation.isPending}
+            >
+              {joinProjectMutation.isPending ? 'Rejoindre en cours...' : 'Rejoindre le projet'}
             </Button>
           ) : (
             <>

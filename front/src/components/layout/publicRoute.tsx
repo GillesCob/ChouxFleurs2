@@ -1,8 +1,8 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
 
 export function PublicRoute() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useAuthStore();
 
   if (isLoading) {
     return (

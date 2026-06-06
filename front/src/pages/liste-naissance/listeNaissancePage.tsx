@@ -1,31 +1,36 @@
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useProject } from "@/context/ProjectContext";
-import { useAuth } from "@/context/AuthContext";
-import { api } from "@/lib/api";
-import { toast } from "@/hooks/use-toast";
-import type { BirthListItem, Contribution, CreateBirthListItemDto } from "@/types";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useAuthStore } from '@/store/authStore';
+import { useProjectStore } from '@/store/projectStore';
+import { useProjectsQuery } from '@/hooks/useProjectsQuery';
+import { useBirthListQuery } from '@/hooks/useBirthListQuery';
+import { useAddBirthListItemMutation } from '@/hooks/useAddBirthListItemMutation';
+import { useDeleteBirthListItemMutation } from '@/hooks/useDeleteBirthListItemMutation';
+import { useAddContributionMutation } from '@/hooks/useAddContributionMutation';
+import { useDeleteContributionMutation } from '@/hooks/useDeleteContributionMutation';
+import { toast } from '@/hooks/use-toast';
+import type { IBirthListItem, IContribution } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   ExternalLink,
   Flower2,
@@ -35,17 +40,14 @@ import {
   Plus,
   Trash2,
   X,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function getItemStats(item: BirthListItem) {
+function getItemStats(item: IBirthListItem) {
   const price = Number(item.price);
-  const totalContributed = item.contributions.reduce(
-    (sum, c) => sum + Number(c.amount),
-    0
-  );
+  const totalContributed = item.contributions.reduce((sum, c) => sum + Number(c.amount), 0);
   const remaining = Math.max(price - totalContributed, 0);
   const pct = Math.min((totalContributed / price) * 100, 100);
   const isFullyFunded = remaining === 0;
@@ -59,10 +61,7 @@ function FundingBar({ pct, isFullyFunded }: { pct: number; isFullyFunded: boolea
     <div className="space-y-1">
       <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
         <div
-          className={cn(
-            "h-full rounded-full transition-all",
-            isFullyFunded ? "bg-green-500" : "bg-primary"
-          )}
+          className={cn('h-full rounded-full transition-all', isFullyFunded ? 'bg-green-500' : 'bg-primary')}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -76,19 +75,19 @@ function FundingBar({ pct, isFullyFunded }: { pct: number; isFullyFunded: boolea
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
 const itemSchema = z.object({
-  name: z.string().min(2, "Nom requis"),
-  price: z.coerce.number().min(0.01, "Prix invalide"),
+  name: z.string().min(2, 'Nom requis'),
+  price: z.coerce.number().min(0.01, 'Prix invalide'),
   imageUrl: z.string().url("URL d'image invalide"),
-  productUrl: z.string().url("URL produit invalide"),
+  productUrl: z.string().url('URL produit invalide'),
   description: z.string().optional(),
 });
 
 const buildContribSchema = (max: number) =>
   z.object({
-    participantName: z.string().min(1, "Nom requis"),
+    participantName: z.string().min(1, 'Nom requis'),
     amount: z.coerce
       .number()
-      .min(0.01, "Montant invalide")
+      .min(0.01, 'Montant invalide')
       .max(max, `Maximum ${max.toFixed(2)} €`),
   });
 
@@ -100,14 +99,15 @@ type ContribFormData = { participantName: string; amount: number };
 function ContributeDialog({
   item,
   userName,
-  onSuccess,
+  projectId,
 }: {
-  item: BirthListItem;
+  item: IBirthListItem;
   userName: string;
-  onSuccess: () => void;
+  projectId: number | null;
 }) {
   const [open, setOpen] = useState(false);
   const { price, totalContributed, remaining, isFullyFunded } = getItemStats(item);
+  const addContributionMutation = useAddContributionMutation(projectId);
 
   const {
     register,
@@ -121,22 +121,18 @@ function ContributeDialog({
 
   const onSubmit = async (data: ContribFormData) => {
     try {
-      await api.post(`/birth-list/${item.id}/contributions`, {
-        amount: data.amount,
-        participantName: data.participantName,
+      await addContributionMutation.mutateAsync({
+        itemId: item.id,
+        dto: { amount: data.amount, participantName: data.participantName },
       });
-      toast({
-        title: "Participation enregistrée !",
-        description: `${data.amount.toFixed(2)} € pour ${item.name}`,
-      });
+      toast({ title: 'Participation enregistrée !', description: `${data.amount.toFixed(2)} € pour ${item.name}` });
       reset({ participantName: userName, amount: undefined });
       setOpen(false);
-      onSuccess();
     } catch (err) {
       toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: err instanceof Error ? err.message : "Erreur lors de la participation",
+        variant: 'destructive',
+        title: 'Erreur',
+        description: err instanceof Error ? err.message : 'Erreur lors de la participation',
       });
     }
   };
@@ -146,7 +142,7 @@ function ContributeDialog({
       <DialogTrigger asChild>
         <Button size="sm" className="flex-1 gap-1.5" disabled={isFullyFunded}>
           <HandCoins className="h-3.5 w-3.5" />
-          {isFullyFunded ? "Financé" : "Participer"}
+          {isFullyFunded ? 'Financé' : 'Participer'}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
@@ -170,7 +166,7 @@ function ContributeDialog({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label>Votre nom</Label>
-            <Input {...register("participantName")} />
+            <Input {...register('participantName')} />
             {errors.participantName && (
               <p className="text-xs text-destructive">{errors.participantName.message}</p>
             )}
@@ -183,14 +179,14 @@ function ContributeDialog({
               min="0.01"
               max={remaining}
               placeholder={`max ${remaining.toFixed(2)} €`}
-              {...register("amount")}
+              {...register('amount')}
             />
             {errors.amount && (
               <p className="text-xs text-destructive">{errors.amount.message}</p>
             )}
           </div>
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Envoi..." : "Confirmer ma participation"}
+            {isSubmitting ? 'Envoi...' : 'Confirmer ma participation'}
           </Button>
         </form>
       </DialogContent>
@@ -206,7 +202,7 @@ function ContributionList({
   isProjectOwner,
   onRemove,
 }: {
-  contributions: Contribution[];
+  contributions: IContribution[];
   currentUserId: number;
   isProjectOwner: boolean;
   onRemove: (id: number) => void;
@@ -221,9 +217,7 @@ function ContributionList({
         >
           <span className="font-medium">{c.participantName}</span>
           <div className="flex items-center gap-2">
-            <span className="text-green-600 font-semibold">
-              {Number(c.amount).toFixed(2)} €
-            </span>
+            <span className="text-green-600 font-semibold">{Number(c.amount).toFixed(2)} €</span>
             {(isProjectOwner || c.userId === currentUserId) && (
               <button
                 onClick={() => onRemove(c.id)}
@@ -243,10 +237,19 @@ function ContributionList({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function ListeNaissancePage() {
-  const { currentProject, isProjectOwner, isLoading: projectLoading } = useProject();
-  const { user } = useAuth();
-  const [items, setItems] = useState<BirthListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const user = useAuthStore((s) => s.user);
+  const { currentProjectId } = useProjectStore();
+  const { data: projects = [], isLoading: projectLoading } = useProjectsQuery();
+
+  const currentProject = projects.find((p) => p.id === currentProjectId) ?? projects[0] ?? null;
+  const isProjectOwner = !!(user && currentProject && currentProject.owner.id === user.id);
+  const projectId = currentProject?.id ?? null;
+
+  const { data: items = [], isLoading } = useBirthListQuery(projectId);
+  const addItemMutation = useAddBirthListItemMutation(projectId);
+  const deleteItemMutation = useDeleteBirthListItemMutation(projectId);
+  const deleteContributionMutation = useDeleteContributionMutation(projectId);
+
   const [open, setOpen] = useState(false);
 
   const {
@@ -256,62 +259,39 @@ export default function ListeNaissancePage() {
     formState: { errors, isSubmitting },
   } = useForm<ItemFormData>({ resolver: zodResolver(itemSchema) });
 
-  const fetchItems = async () => {
-    if (!currentProject) return;
-    setIsLoading(true);
-    try {
-      const data = await api.get<BirthListItem[]>(
-        `/birth-list?projectId=${currentProject.id}`
-      );
-      setItems(data);
-    } catch {
-      toast({ variant: "destructive", title: "Impossible de charger la liste" });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchItems();
-  }, [currentProject?.id]);
-
   const onSubmitItem = async (data: ItemFormData) => {
     if (!currentProject) return;
     try {
-      const dto: CreateBirthListItemDto = { ...data, projectId: currentProject.id };
-      await api.post<BirthListItem>("/birth-list", dto);
-      toast({ title: "Article ajouté !" });
+      await addItemMutation.mutateAsync({ ...data, projectId: currentProject.id });
+      toast({ title: 'Article ajouté !' });
       reset();
       setOpen(false);
-      fetchItems();
     } catch (err) {
       toast({
-        variant: "destructive",
-        title: "Erreur",
+        variant: 'destructive',
+        title: 'Erreur',
         description: err instanceof Error ? err.message : "Erreur lors de l'ajout",
       });
     }
   };
 
   const handleRemoveContribution = async (contributionId: number) => {
-    if (!confirm("Supprimer cette participation ?")) return;
+    if (!confirm('Supprimer cette participation ?')) return;
     try {
-      await api.delete(`/birth-list/contributions/${contributionId}`);
-      toast({ title: "Participation supprimée" });
-      fetchItems();
+      await deleteContributionMutation.mutateAsync(contributionId);
+      toast({ title: 'Participation supprimée' });
     } catch {
-      toast({ variant: "destructive", title: "Erreur lors de la suppression" });
+      toast({ variant: 'destructive', title: 'Erreur lors de la suppression' });
     }
   };
 
   const handleDeleteItem = async (id: number) => {
-    if (!confirm("Supprimer cet article ?")) return;
+    if (!confirm('Supprimer cet article ?')) return;
     try {
-      await api.delete(`/birth-list/${id}`);
-      toast({ title: "Article supprimé" });
-      setItems((prev) => prev.filter((i) => i.id !== id));
+      await deleteItemMutation.mutateAsync(id);
+      toast({ title: 'Article supprimé' });
     } catch {
-      toast({ variant: "destructive", title: "Erreur lors de la suppression" });
+      toast({ variant: 'destructive', title: 'Erreur lors de la suppression' });
     }
   };
 
@@ -340,8 +320,8 @@ export default function ListeNaissancePage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Liste de naissance</h1>
           <p className="text-muted-foreground">
-            {items.length} article{items.length > 1 ? "s" : ""} —{" "}
-            {fullyFunded} entièrement financé{fullyFunded > 1 ? "s" : ""}
+            {items.length} article{items.length > 1 ? 's' : ''} —{' '}
+            {fullyFunded} entièrement financé{fullyFunded > 1 ? 's' : ''}
             {isProjectOwner && (
               <Badge variant="secondary" className="ml-3">
                 Admin
@@ -365,46 +345,30 @@ export default function ListeNaissancePage() {
               <form onSubmit={handleSubmit(onSubmitItem)} className="space-y-4">
                 <div className="space-y-2">
                   <Label>Nom du produit</Label>
-                  <Input placeholder="Poussette 3-en-1" {...register("name")} />
-                  {errors.name && (
-                    <p className="text-xs text-destructive">{errors.name.message}</p>
-                  )}
+                  <Input placeholder="Poussette 3-en-1" {...register('name')} />
+                  {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>Prix total (€)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="299.99"
-                    {...register("price")}
-                  />
-                  {errors.price && (
-                    <p className="text-xs text-destructive">{errors.price.message}</p>
-                  )}
+                  <Input type="number" step="0.01" placeholder="299.99" {...register('price')} />
+                  {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>URL de l'image</Label>
-                  <Input type="url" placeholder="https://..." {...register("imageUrl")} />
-                  {errors.imageUrl && (
-                    <p className="text-xs text-destructive">{errors.imageUrl.message}</p>
-                  )}
+                  <Input type="url" placeholder="https://..." {...register('imageUrl')} />
+                  {errors.imageUrl && <p className="text-xs text-destructive">{errors.imageUrl.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>Lien vers le produit</Label>
-                  <Input type="url" placeholder="https://..." {...register("productUrl")} />
-                  {errors.productUrl && (
-                    <p className="text-xs text-destructive">{errors.productUrl.message}</p>
-                  )}
+                  <Input type="url" placeholder="https://..." {...register('productUrl')} />
+                  {errors.productUrl && <p className="text-xs text-destructive">{errors.productUrl.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>Description (optionnelle)</Label>
-                  <Textarea
-                    placeholder="Couleur, taille, référence..."
-                    {...register("description")}
-                  />
+                  <Textarea placeholder="Couleur, taille, référence..." {...register('description')} />
                 </div>
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? "Ajout en cours..." : "Ajouter à la liste"}
+                  {isSubmitting ? 'Ajout en cours...' : 'Ajouter à la liste'}
                 </Button>
               </form>
             </DialogContent>
@@ -428,19 +392,16 @@ export default function ListeNaissancePage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((item) => {
-            const { price, totalContributed, remaining, pct, isFullyFunded } =
-              getItemStats(item);
+            const { price, totalContributed, remaining, pct, isFullyFunded } = getItemStats(item);
             return (
               <Card key={item.id} className="flex flex-col">
-                {/* Image */}
                 <div className="relative">
                   <img
                     src={item.imageUrl}
                     alt={item.name}
                     className="h-44 w-full rounded-t-lg object-cover"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "https://placehold.co/400x200?text=Image";
+                      (e.target as HTMLImageElement).src = 'https://placehold.co/400x200?text=Image';
                     }}
                   />
                   {isFullyFunded && (
@@ -462,20 +423,14 @@ export default function ListeNaissancePage() {
                     <p className="text-sm text-muted-foreground">{item.description}</p>
                   )}
 
-                  {/* Barre de financement */}
                   <FundingBar pct={pct} isFullyFunded={isFullyFunded} />
                   <div className="flex justify-between text-xs">
-                    <span className="text-green-600 font-medium">
-                      {totalContributed.toFixed(2)} € financés
-                    </span>
+                    <span className="text-green-600 font-medium">{totalContributed.toFixed(2)} € financés</span>
                     {!isFullyFunded && (
-                      <span className="text-muted-foreground">
-                        {remaining.toFixed(2)} € restants
-                      </span>
+                      <span className="text-muted-foreground">{remaining.toFixed(2)} € restants</span>
                     )}
                   </div>
 
-                  {/* Liste des participants */}
                   <ContributionList
                     contributions={item.contributions}
                     currentUserId={user?.id ?? -1}
@@ -485,11 +440,7 @@ export default function ListeNaissancePage() {
                 </CardContent>
 
                 <CardFooter className="flex gap-2 pt-0">
-                  <ContributeDialog
-                    item={item}
-                    userName={user?.name ?? ""}
-                    onSuccess={fetchItems}
-                  />
+                  <ContributeDialog item={item} userName={user?.name ?? ''} projectId={projectId} />
                   <Button size="sm" variant="outline" asChild>
                     <a href={item.productUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-3.5 w-3.5" />

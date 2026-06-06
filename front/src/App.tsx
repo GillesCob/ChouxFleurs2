@@ -1,41 +1,38 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/context/AuthContext";
-import { ProjectProvider } from "@/context/ProjectContext";
-import { Toaster } from "@/components/ui/toaster";
-import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
-import { PublicRoute } from "@/components/layout/PublicRoute";
-import LoginPage from "@/pages/auth/LoginPage";
-import RegisterPage from "@/pages/auth/RegisterPage";
-import DashboardPage from "@/pages/dashboard/DashboardPage";
-import PronosticsPage from "@/pages/pronostics/PronosticsPage";
-import ListeNaissancePage from "@/pages/liste-naissance/ListeNaissancePage";
-import AdminPage from "@/pages/admin/AdminPage";
-import InvitePage from "@/pages/invite/InvitePage";
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import { useInitAuth } from '@/hooks/useInitAuth';
+import { ProtectedRoute } from '@/components/layout/protectedRoute';
+import { PublicRoute } from '@/components/layout/publicRoute';
+import LoginPage from '@/pages/auth/loginPage';
+import RegisterPage from '@/pages/auth/registerPage';
+import DashboardPage from '@/pages/dashboard/dashboardPage';
+import PronosticsPage from '@/pages/pronostics/pronosticsPage';
+import ListeNaissancePage from '@/pages/liste-naissance/listeNaissancePage';
+import AdminPage from '@/pages/admin/adminPage';
+import InvitePage from '@/pages/invite/invitePage';
 
 export default function App() {
+  useInitAuth();
+
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ProjectProvider>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/invite/:token" element={<InvitePage />} />
+    <>
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/invite/:token" element={<InvitePage />} />
 
-            <Route element={<PublicRoute />}>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-            </Route>
+        <Route element={<PublicRoute />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
 
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/pronostics" element={<PronosticsPage />} />
-              <Route path="/liste-naissance" element={<ListeNaissancePage />} />
-              <Route path="/admin" element={<AdminPage />} />
-            </Route>
-          </Routes>
-          <Toaster />
-        </ProjectProvider>
-      </AuthProvider>
-    </BrowserRouter>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/pronostics" element={<PronosticsPage />} />
+          <Route path="/liste-naissance" element={<ListeNaissancePage />} />
+          <Route path="/admin" element={<AdminPage />} />
+        </Route>
+      </Routes>
+      <Toaster />
+    </>
   );
 }

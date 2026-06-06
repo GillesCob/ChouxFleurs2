@@ -1,19 +1,19 @@
-export interface User {
+export interface IUser {
   id: number;
   email: string;
   name: string;
-  role: "admin" | "guest";
+  role: 'admin' | 'guest';
   createdAt: string;
 }
 
-export interface AuthResponse {
+export interface IAuthResponse {
   access_token: string;
-  user: User;
+  user: IUser;
 }
 
-export type BabyGender = "boy" | "girl" | "surprise";
+export type BabyGender = 'boy' | 'girl' | 'surprise';
 
-export interface ScoreDetails {
+export interface IScoreDetails {
   gender: number;
   firstName: number;
   birthDate: number;
@@ -21,7 +21,7 @@ export interface ScoreDetails {
   height: number;
 }
 
-export interface Pronostic {
+export interface IPronostic {
   id: number;
   authorName: string;
   gender: BabyGender;
@@ -31,11 +31,11 @@ export interface Pronostic {
   firstName: string;
   message?: string;
   score: number | null;
-  scoreDetails: ScoreDetails | null;
+  scoreDetails: IScoreDetails | null;
   createdAt: string;
 }
 
-export interface CreatePronosticDto {
+export interface ICreatePronosticDto {
   projectId: number;
   authorName: string;
   gender: BabyGender;
@@ -46,9 +46,9 @@ export interface CreatePronosticDto {
   message?: string;
 }
 
-export interface BirthResult {
+export interface IBirthResult {
   id: number;
-  gender: "boy" | "girl";
+  gender: 'boy' | 'girl';
   birthDate: string;
   weightGrams: number;
   heightCm: number;
@@ -56,25 +56,25 @@ export interface BirthResult {
   revealedAt: string;
 }
 
-export interface ProjectMemberInfo {
+export interface IProjectMemberInfo {
   id: number;
   user: { id: number; name: string; email: string };
   joinedAt: string;
 }
 
-export interface Project {
+export interface IProject {
   id: number;
   name: string;
   inviteToken: string;
   owner: { id: number; name: string };
-  birthResult: BirthResult | null;
-  winner: Pronostic | null;
+  birthResult: IBirthResult | null;
+  winner: IPronostic | null;
   memberCount: number;
-  members?: ProjectMemberInfo[];
+  members?: IProjectMemberInfo[];
   createdAt: string;
 }
 
-export interface Contribution {
+export interface IContribution {
   id: number;
   amount: number;
   participantName: string;
@@ -82,18 +82,18 @@ export interface Contribution {
   createdAt: string;
 }
 
-export interface BirthListItem {
+export interface IBirthListItem {
   id: number;
   name: string;
   price: number;
   imageUrl: string;
   productUrl: string;
   description?: string;
-  contributions: Contribution[];
+  contributions: IContribution[];
   createdAt: string;
 }
 
-export interface CreateBirthListItemDto {
+export interface ICreateBirthListItemDto {
   projectId: number;
   name: string;
   price: number;
@@ -102,13 +102,13 @@ export interface CreateBirthListItemDto {
   description?: string;
 }
 
-export interface CreateContributionDto {
+export interface ICreateContributionDto {
   amount: number;
   participantName?: string;
 }
 
-export interface RevealResultDto {
-  gender: "boy" | "girl";
+export interface IRevealResultDto {
+  gender: 'boy' | 'girl';
   birthDate: string;
   weightGrams: number;
   heightCm: number;

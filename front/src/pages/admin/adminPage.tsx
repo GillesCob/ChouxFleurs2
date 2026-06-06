@@ -1,36 +1,28 @@
-import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
-import { useProject } from "@/context/ProjectContext";
-import { useAuth } from "@/context/AuthContext";
-import { api } from "@/lib/api";
-import { toast } from "@/hooks/use-toast";
-import type { User } from "@/types";
+import { Navigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
+import { useProjectStore } from '@/store/projectStore';
+import { useProjectsQuery } from '@/hooks/useProjectsQuery';
+import { useUsersQuery } from '@/hooks/useUsersQuery';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Crown, Users } from "lucide-react";
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Crown, Users } from 'lucide-react';
 
 export default function AdminPage() {
-  const { isAdmin, user: currentUser } = useAuth();
-  const { currentProject } = useProject();
-  const [users, setUsers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'admin';
+  const { currentProjectId } = useProjectStore();
+  const { data: projects = [] } = useProjectsQuery();
+  const currentProject = projects.find((p) => p.id === currentProjectId) ?? projects[0] ?? null;
+  const { data: users = [], isLoading } = useUsersQuery();
 
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
-
-  useEffect(() => {
-    api
-      .get<User[]>("/users")
-      .then(setUsers)
-      .catch(() => toast({ variant: "destructive", title: "Erreur de chargement" }))
-      .finally(() => setIsLoading(false));
-  }, []);
 
   if (isLoading) {
     return (
@@ -74,34 +66,25 @@ export default function AdminPage() {
         <h2 className="text-xl font-semibold">Tous les utilisateurs</h2>
         <Card>
           <CardHeader>
-            <CardDescription>
-              Liste complète des comptes enregistrés.
-            </CardDescription>
+            <CardDescription>Liste complète des comptes enregistrés.</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y">
               {users.map((u) => (
-                <div
-                  key={u.id}
-                  className="flex items-center justify-between px-6 py-4"
-                >
+                <div key={u.id} className="flex items-center justify-between px-6 py-4">
                   <div>
                     <p className="font-medium">
                       {u.name}
-                      {u.id === currentUser?.id && (
-                        <span className="ml-2 text-xs text-muted-foreground">
-                          (vous)
-                        </span>
+                      {u.id === user?.id && (
+                        <span className="ml-2 text-xs text-muted-foreground">(vous)</span>
                       )}
                     </p>
                     <p className="text-sm text-muted-foreground">{u.email}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={u.role === "admin" ? "default" : "secondary"}>
-                      {u.role}
-                    </Badge>
+                    <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>{u.role}</Badge>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(u.createdAt).toLocaleDateString("fr-FR")}
+                      {new Date(u.createdAt).toLocaleDateString('fr-FR')}
                     </span>
                   </div>
                 </div>
@@ -115,9 +98,7 @@ export default function AdminPage() {
         <>
           <Separator />
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">
-              Projet actif : {currentProject.name}
-            </h2>
+            <h2 className="text-xl font-semibold">Projet actif : {currentProject.name}</h2>
             <Card>
               <CardHeader>
                 <CardDescription>
@@ -128,19 +109,13 @@ export default function AdminPage() {
                 {currentProject.members && currentProject.members.length > 0 ? (
                   <div className="divide-y">
                     {currentProject.members.map((m) => (
-                      <div
-                        key={m.id}
-                        className="flex items-center justify-between px-6 py-3"
-                      >
+                      <div key={m.id} className="flex items-center justify-between px-6 py-3">
                         <div>
                           <p className="font-medium">{m.user.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {m.user.email}
-                          </p>
+                          <p className="text-sm text-muted-foreground">{m.user.email}</p>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          Rejoint le{" "}
-                          {new Date(m.joinedAt).toLocaleDateString("fr-FR")}
+                          Rejoint le {new Date(m.joinedAt).toLocaleDateString('fr-FR')}
                         </span>
                       </div>
                     ))}
