@@ -7,10 +7,11 @@ import { useProjectStore } from '@/store/projectStore';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
 import { usePronosticsQuery } from '@/hooks/usePronosticsQuery';
 import { useCreatePronosticMutation } from '@/hooks/useCreatePronosticMutation';
+import { useUpdatePronosticMutation } from '@/hooks/useUpdatePronosticMutation';
 import { useDeletePronosticMutation } from '@/hooks/useDeletePronosticMutation';
 import { useRevealResultMutation } from '@/hooks/useRevealResultMutation';
 import { toast } from '@/hooks/use-toast';
-import type { IRevealResultDto } from '@/types';
+import type { IPronostic, IRevealResultDto } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -110,10 +111,12 @@ export default function PronosticsPage() {
   const { data: pronostics = [], isLoading } = usePronosticsQuery(currentProject?.id ?? null);
   const userHasPronostic = pronostics.some((p) => p.userId === user?.id);
   const createPronosticMutation = useCreatePronosticMutation(currentProject?.id ?? null);
+  const updatePronosticMutation = useUpdatePronosticMutation(currentProject?.id ?? null);
   const deletePronosticMutation = useDeletePronosticMutation(currentProject?.id ?? null);
   const revealResultMutation = useRevealResultMutation(currentProject?.id ?? 0);
 
   const [openPronostic, setOpenPronostic] = useState(false);
+  const [editingPronostic, setEditingPronostic] = useState<IPronostic | null>(null);
   const [openReveal, setOpenReveal] = useState(false);
 
   const {
@@ -121,6 +124,7 @@ export default function PronosticsPage() {
     handleSubmit,
     setValue,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<PronosticFormData>({
     resolver: zodResolver(pronosticSchema),
@@ -134,13 +138,37 @@ export default function PronosticsPage() {
     formState: { errors: revealErrors, isSubmitting: revealSubmitting },
   } = useForm<RevealFormData>({ resolver: zodResolver(revealSchema) });
 
+  const openEditDialog = (p: IPronostic) => {
+    setEditingPronostic(p);
+    reset({
+      authorName: p.authorName,
+      gender: p.gender,
+      birthDate: new Date(p.birthDate).toISOString().slice(0, 10),
+      weightGrams: p.weightGrams,
+      heightCm: p.heightCm,
+      firstName: p.firstName,
+      message: p.message ?? '',
+    });
+    setOpenPronostic(true);
+  };
+
+  const closePronosticDialog = () => {
+    setOpenPronostic(false);
+    setEditingPronostic(null);
+    reset({ authorName: user?.name ?? '' });
+  };
+
   const onSubmitPronostic = async (data: PronosticFormData) => {
     if (!currentProject) return;
     try {
-      await createPronosticMutation.mutateAsync({ ...data, projectId: currentProject.id });
-      toast({ title: 'Pronostic soumis !', description: 'Bonne chance !' });
-      reset({ authorName: user?.name ?? '' });
-      setOpenPronostic(false);
+      if (editingPronostic) {
+        await updatePronosticMutation.mutateAsync({ id: editingPronostic.id, ...data });
+        toast({ title: 'Pronostic modifié !' });
+      } else {
+        await createPronosticMutation.mutateAsync({ ...data, projectId: currentProject.id });
+        toast({ title: 'Pronostic soumis !', description: 'Bonne chance !' });
+      }
+      closePronosticDialog();
     } catch (err) {
       toast({
         variant: 'destructive',
@@ -264,17 +292,20 @@ export default function PronosticsPage() {
             </Dialog>
           )}
 
-          {!birthResult && !isProjectOwner && !userHasPronostic && (
-            <Dialog open={openPronostic} onOpenChange={setOpenPronostic}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Mon pronostic
-                </Button>
-              </DialogTrigger>
+          <Dialog open={openPronostic} onOpenChange={(open) => { if (!open) closePronosticDialog(); else setOpenPronostic(true); }}>
+              {!birthResult && !isProjectOwner && !userHasPronostic && (
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Mon pronostic
+                  </Button>
+                </DialogTrigger>
+              )}
               <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>Soumettre mon pronostic</DialogTitle>
+                  <DialogTitle>
+                    {editingPronostic ? 'Modifier mon pronostic' : 'Soumettre mon pronostic'}
+                  </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmitPronostic)} className="space-y-4">
                   <div className="space-y-2">
@@ -286,7 +317,10 @@ export default function PronosticsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label>Sexe du bébé</Label>
-                    <Select onValueChange={(v) => setValue('gender', v as PronosticFormData['gender'])}>
+                    <Select
+                      value={watch('gender') || undefined}
+                      onValueChange={(v) => setValue('gender', v as PronosticFormData['gender'])}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Votre pronostic..." />
                       </SelectTrigger>
@@ -335,12 +369,11 @@ export default function PronosticsPage() {
                     <Textarea placeholder="Un petit mot pour les parents..." {...register('message')} />
                   </div>
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? 'Envoi...' : 'Soumettre mon pronostic'}
+                    {isSubmitting ? 'Envoi...' : editingPronostic ? 'Enregistrer les modifications' : 'Soumettre mon pronostic'}
                   </Button>
                 </form>
               </DialogContent>
             </Dialog>
-          )}
         </div>
       </div>
 
@@ -447,6 +480,16 @@ export default function PronosticsPage() {
                     </>
                   )}
 
+                  {!birthResult && p.userId === user?.id && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2"
+                      onClick={() => openEditDialog(p)}
+                    >
+                      Modifier
+                    </Button>
+                  )}
                   {isProjectOwner && (
                     <Button
                       variant="ghost"

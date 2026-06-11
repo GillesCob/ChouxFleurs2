@@ -1,6 +1,7 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePronosticDto } from './dto/create-pronostic.dto';
+import { UpdatePronosticDto } from './dto/update-pronostic.dto';
 
 @Injectable()
 export class PronosticsService {
@@ -30,6 +31,18 @@ export class PronosticsService {
         projectId,
         userId,
       },
+    });
+  }
+
+  async update(id: number, dto: UpdatePronosticDto, userId: number) {
+    const pronostic = await this.prisma.pronostic.findUnique({ where: { id } });
+    if (!pronostic) throw new NotFoundException(`Pronostic #${id} introuvable`);
+    if (pronostic.userId !== userId)
+      throw new ForbiddenException('Vous ne pouvez modifier que votre propre pronostic');
+
+    return this.prisma.pronostic.update({
+      where: { id },
+      data: { ...dto, birthDate: new Date(dto.birthDate) },
     });
   }
 

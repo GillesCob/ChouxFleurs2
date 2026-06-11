@@ -7,12 +7,14 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { PronosticsService } from './pronostics.service';
 import { CreatePronosticDto } from './dto/create-pronostic.dto';
+import { UpdatePronosticDto } from './dto/update-pronostic.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -29,6 +31,15 @@ export class PronosticsController {
   @Post()
   create(@Body() dto: CreatePronosticDto, @CurrentUser() user: { id: number }) {
     return this.pronosticsService.create(dto, user.id);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdatePronosticDto,
+    @CurrentUser() user: { id: number },
+  ) {
+    return this.pronosticsService.update(id, dto, user.id);
   }
 
   @Delete(':id')
