@@ -7,7 +7,6 @@ import { useAuthStore } from '@/store/authStore';
 import { useProjectStore } from '@/store/projectStore';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
 import { useCreateProjectMutation } from '@/hooks/useCreateProjectMutation';
-import { useUpdateProjectMutation } from '@/hooks/useUpdateProjectMutation';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Check, Gift, Link2, Loader2, Lock, Pencil, Plus, Sparkles, Trophy, Users } from 'lucide-react';
+import { Check, Gift, Link2, Loader2, Lock, Plus, Sparkles, Trophy, Users } from 'lucide-react';
 
 const projectNameSchema = z.object({
   name: z.string().min(2, 'Au moins 2 caractères'),
@@ -28,11 +27,9 @@ export default function DashboardPage() {
   const { currentProjectId } = useProjectStore();
   const { data: projects = [], isLoading } = useProjectsQuery();
   const createProjectMutation = useCreateProjectMutation();
-  const updateProjectMutation = useUpdateProjectMutation();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
-  const [openRename, setOpenRename] = useState(false);
 
   const currentProject = projects.find((p) => p.id === currentProjectId) ?? projects[0] ?? null;
   const isProjectOwner = !!(user && currentProject && currentProject.owner.id === user.id);
@@ -44,13 +41,6 @@ export default function DashboardPage() {
     formState: { errors, isSubmitting },
   } = useForm<ProjectNameForm>({ resolver: zodResolver(projectNameSchema) });
 
-  const {
-    register: renameRegister,
-    handleSubmit: renameHandleSubmit,
-    reset: renameReset,
-    formState: { errors: renameErrors, isSubmitting: renameSubmitting },
-  } = useForm<ProjectNameForm>({ resolver: zodResolver(projectNameSchema) });
-
   const inviteUrl = currentProject ? `${window.location.origin}/invite/${currentProject.inviteToken}` : null;
 
   const copyInviteLink = async () => {
@@ -59,22 +49,6 @@ export default function DashboardPage() {
     setCopied(true);
     toast({ title: 'Lien copié !', description: 'Partagez-le avec vos proches.' });
     setTimeout(() => setCopied(false), 2500);
-  };
-
-  const onRenameProject = async (data: ProjectNameForm) => {
-    if (!currentProject) return;
-    try {
-      await updateProjectMutation.mutateAsync({ id: currentProject.id, name: data.name });
-      toast({ title: 'Projet renommé !', description: `Nouveau nom : '${data.name}'` });
-      renameReset();
-      setOpenRename(false);
-    } catch (err) {
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: err instanceof Error ? err.message : 'Impossible de renommer le projet',
-      });
-    }
   };
 
   const onCreateProject = async (data: ProjectNameForm) => {
@@ -267,34 +241,6 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <Badge variant='secondary'>Admin du projet</Badge>
-                <Dialog open={openRename} onOpenChange={(open) => {
-                  setOpenRename(open);
-                  if (open) renameReset({ name: currentProject.name });
-                }}>
-                  <DialogTrigger asChild>
-                    <Button variant='ghost' size='sm' className='h-7 gap-1.5 px-2 text-xs'>
-                      <Pencil className='h-3 w-3' />
-                      Renommer
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className='sm:max-w-sm'>
-                    <DialogHeader>
-                      <DialogTitle>Renommer le projet</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={renameHandleSubmit(onRenameProject)} className='space-y-4'>
-                      <div className='space-y-2'>
-                        <Label htmlFor='renameName'>Nouveau nom</Label>
-                        <Input id='renameName' {...renameRegister('name')} />
-                        {renameErrors.name && (
-                          <p className='text-xs text-destructive'>{renameErrors.name.message}</p>
-                        )}
-                      </div>
-                      <Button type='submit' className='w-full' disabled={renameSubmitting}>
-                        {renameSubmitting ? 'Renommage...' : 'Enregistrer'}
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
               </div>
             </>
           ) : (
