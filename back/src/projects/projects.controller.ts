@@ -4,11 +4,13 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
 import { RevealResultDto } from './dto/reveal-result.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -38,6 +40,16 @@ export class ProjectsController {
   @UseGuards(JwtAuthGuard)
   joinByToken(@Param('token') token: string, @CurrentUser() user: { id: number }) {
     return this.projectsService.joinByToken(token, user);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  updateName(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateProjectDto,
+    @CurrentUser() user: { id: number },
+  ) {
+    return this.projectsService.updateName(id, dto.name, user.id);
   }
 
   @Post(':id/result')

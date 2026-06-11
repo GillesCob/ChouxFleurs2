@@ -63,6 +63,17 @@ export class ProjectsService {
     return project;
   }
 
+  async updateName(id: number, name: string, userId: number) {
+    const isOwner = await this.isProjectOwner(id, userId);
+    if (!isOwner) throw new ForbiddenException('Seul le créateur peut renommer le projet');
+    const project = await this.prisma.project.update({
+      where: { id },
+      data: { name },
+      include: projectInclude,
+    });
+    return this.enrichWithWinner(project);
+  }
+
   async isProjectOwner(projectId: number, userId: number): Promise<boolean> {
     const count = await this.prisma.project.count({
       where: { id: projectId, ownerId: userId },

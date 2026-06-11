@@ -23,6 +23,7 @@ export interface IScoreDetails {
 
 export interface IPronostic {
   id: number;
+  userId: number | null;
   authorName: string;
   gender: BabyGender;
   birthDate: string;

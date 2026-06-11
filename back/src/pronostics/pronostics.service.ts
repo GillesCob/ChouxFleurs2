@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePronosticDto } from './dto/create-pronostic.dto';
 
@@ -16,6 +16,11 @@ export class PronosticsService {
   async create(dto: CreatePronosticDto, userId: number) {
     const project = await this.prisma.project.findUnique({ where: { id: dto.projectId } });
     if (!project) throw new NotFoundException('Projet introuvable');
+
+    const existing = await this.prisma.pronostic.findFirst({
+      where: { projectId: dto.projectId, userId },
+    });
+    if (existing) throw new ConflictException('Vous avez déjà soumis un pronostic pour ce projet');
 
     const { projectId, ...rest } = dto;
     return this.prisma.pronostic.create({

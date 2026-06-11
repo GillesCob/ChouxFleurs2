@@ -108,6 +108,7 @@ export default function PronosticsPage() {
   const isProjectOwner = !!(user && currentProject && currentProject.owner.id === user.id);
 
   const { data: pronostics = [], isLoading } = usePronosticsQuery(currentProject?.id ?? null);
+  const userHasPronostic = pronostics.some((p) => p.userId === user?.id);
   const createPronosticMutation = useCreatePronosticMutation(currentProject?.id ?? null);
   const deletePronosticMutation = useDeletePronosticMutation(currentProject?.id ?? null);
   const revealResultMutation = useRevealResultMutation(currentProject?.id ?? 0);
@@ -263,7 +264,7 @@ export default function PronosticsPage() {
             </Dialog>
           )}
 
-          {!birthResult && (
+          {!birthResult && !isProjectOwner && !userHasPronostic && (
             <Dialog open={openPronostic} onOpenChange={setOpenPronostic}>
               <DialogTrigger asChild>
                 <Button className="gap-2">
