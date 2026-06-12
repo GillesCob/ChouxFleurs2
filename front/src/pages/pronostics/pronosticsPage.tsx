@@ -56,7 +56,7 @@ const MAX_SCORE = 110;
 
 const pronosticSchema = z.object({
   authorName: z.string().min(2, 'Nom requis'),
-  gender: z.enum(['boy', 'girl', 'surprise']),
+  gender: z.enum(['boy', 'girl']),
   birthDate: z.string().min(1, 'Date requise'),
   weightGrams: z.coerce.number().min(500).max(6000),
   heightCm: z.coerce.number().min(30).max(70),
@@ -328,7 +328,6 @@ export default function PronosticsPage() {
                       <SelectContent>
                         <SelectItem value="boy">Garçon</SelectItem>
                         <SelectItem value="girl">Fille</SelectItem>
-                        <SelectItem value="surprise">Surprise !</SelectItem>
                       </SelectContent>
                     </Select>
                     {errors.gender && (
