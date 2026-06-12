@@ -1,6 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { UpdateMeDto } from './dto/update-me.dto';
 
 @Injectable()
 export class UsersService {
@@ -23,7 +24,6 @@ export class UsersService {
   }
 
   findByEmail(email: string) {
-    // Inclut le mot de passe pour la vérification lors du login
     return this.prisma.user.findUnique({ where: { email } });
   }
 
@@ -42,5 +42,23 @@ export class UsersService {
         role: count === 0 ? 'admin' : 'guest',
       },
     });
+  }
+
+  async updateMe(userId: number, dto: UpdateMeDto) {
+    if (dto.email) {
+      const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
+      if (existing && existing.id !== userId) {
+        throw new ConflictException('Cet email est déjà utilisé');
+      }
+    }
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: dto,
+      select: { id: true, name: true, email: true, role: true, createdAt: true, updatedAt: true },
+    });
+  }
+
+  async deleteMe(userId: number) {
+    await this.prisma.user.delete({ where: { id: userId } });
   }
 }

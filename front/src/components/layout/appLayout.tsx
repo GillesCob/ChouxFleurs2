@@ -17,9 +17,9 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  Settings,
   Sparkles,
   Trophy,
+  User,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -32,6 +32,7 @@ const navItems = [
   { to: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
   { to: '/pronostics', label: 'Pronostics', icon: Sparkles },
   { to: '/liste-naissance', label: 'Liste de naissance', icon: Gift },
+  { to: '/admin', label: 'Mon compte', icon: User },
 ];
 
 export function AppLayout({ children }: { children: ReactNode }) {
@@ -46,7 +47,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   const currentProject = projects.find((p) => p.id === currentProjectId) ?? projects[0] ?? null;
   const isProjectOwner = !!(user && currentProject && currentProject.owner.id === user.id);
-  const isAdmin = user?.role === 'admin';
 
   const handleLogout = () => {
     logout();
@@ -145,18 +145,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 </Button>
               </Link>
             ))}
-            {isAdmin && isProjectOwner && (
-              <Link to='/admin'>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  className={cn('gap-2', location.pathname === '/admin' && 'bg-muted font-medium')}
-                >
-                  <Settings className='h-4 w-4' />
-                  Admin
-                </Button>
-              </Link>
-            )}
           </nav>
 
           {/* Desktop — utilisateur + déconnexion */}
@@ -252,21 +240,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   {label}
                 </Link>
               ))}
-              {isAdmin && isProjectOwner && (
-                <Link
-                  to='/admin'
-                  onClick={closeMenu}
-                  className={cn(
-                    'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors',
-                    location.pathname === '/admin'
-                      ? 'bg-muted font-medium'
-                      : 'hover:bg-muted/50',
-                  )}
-                >
-                  <Settings className='h-4 w-4 shrink-0' />
-                  Admin
-                </Link>
-              )}
             </nav>
           </div>
 

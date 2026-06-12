@@ -78,36 +78,36 @@ export default function DashboardPage() {
   }
 
   return (
+    <Dialog open={openCreate} onOpenChange={setOpenCreate}>
+      <DialogContent className='sm:max-w-sm'>
+        <DialogHeader>
+          <DialogTitle>Créer un nouveau projet bébé</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit(onCreateProject)} className='space-y-4'>
+          <div className='space-y-2'>
+            <Label htmlFor='projectName'>Nom du projet</Label>
+            <Input id='projectName' placeholder='Bébé Martin 2026' {...register('name')} />
+            {errors.name && <p className='text-xs text-destructive'>{errors.name.message}</p>}
+          </div>
+          <Button type='submit' className='w-full' disabled={isSubmitting}>
+            {isSubmitting ? 'Création...' : 'Créer le projet'}
+          </Button>
+        </form>
+      </DialogContent>
+
     <div className='space-y-8'>
-      <div className='flex flex-wrap items-start justify-between gap-3'>
+      <div className='flex items-start justify-between gap-3'>
         <div>
           <h1 className='text-3xl font-bold tracking-tight'>Bonjour, {user?.name} !</h1>
         </div>
 
-        {/* Créer un nouveau projet — accessible à tous */}
-        <Dialog open={openCreate} onOpenChange={setOpenCreate}>
-          <DialogTrigger asChild>
-            <Button variant='outline' className='gap-2'>
-              <Plus className='h-4 w-4' />
-              Nouveau projet
-            </Button>
-          </DialogTrigger>
-          <DialogContent className='sm:max-w-sm'>
-            <DialogHeader>
-              <DialogTitle>Créer un nouveau projet bébé</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit(onCreateProject)} className='space-y-4'>
-              <div className='space-y-2'>
-                <Label htmlFor='projectName'>Nom du projet</Label>
-                <Input id='projectName' placeholder='Bébé Martin 2026' {...register('name')} />
-                {errors.name && <p className='text-xs text-destructive'>{errors.name.message}</p>}
-              </div>
-              <Button type='submit' className='w-full' disabled={isSubmitting}>
-                {isSubmitting ? 'Création...' : 'Créer le projet'}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        {/* Desktop — bouton en haut à droite */}
+        <DialogTrigger asChild>
+          <Button variant='outline' className='hidden gap-2 md:flex'>
+            <Plus className='h-4 w-4' />
+            Nouveau projet
+          </Button>
+        </DialogTrigger>
       </div>
 
       {/* Bannière gagnant */}
@@ -240,6 +240,15 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Mobile — bouton en bas */}
+      <DialogTrigger asChild>
+        <Button variant='outline' className='flex w-full gap-2 md:hidden'>
+          <Plus className='h-4 w-4' />
+          Nouveau projet
+        </Button>
+      </DialogTrigger>
     </div>
+    </Dialog>
   );
 }
