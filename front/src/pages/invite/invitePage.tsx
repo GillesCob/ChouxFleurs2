@@ -65,7 +65,7 @@ export default function InvitePage() {
       <Card className="w-full max-w-md text-center">
         <CardHeader className="space-y-3">
           <div className="flex justify-center">
-            <img src="/Chouxfleur2noir.png" alt="ChouxFleurs" className="h-12 w-12 object-contain" />
+            <img src="/Chouxfleur2noir.png" alt="ChouxFleurs" className="h-16 w-16 object-contain" />
           </div>
           <CardTitle className="text-2xl">Vous êtes invité !</CardTitle>
           <CardDescription className="text-base">

@@ -54,14 +54,13 @@
     @apply border-border;
   }
   html {
-    overflow-x: hidden;
-    /* Bloque le double-tap zoom iOS sans désactiver le scroll */
+    /* clip au lieu de hidden : n'empêche pas position:sticky sur les enfants */
+    overflow-x: clip;
     touch-action: pan-x pan-y;
   }
   body {
     @apply bg-background text-foreground;
-    overflow-x: hidden;
-    /* Safe area iOS en mode PWA standalone (landscape bottom bar) */
+    overflow-x: clip;
     padding-bottom: env(safe-area-inset-bottom);
   }
 }

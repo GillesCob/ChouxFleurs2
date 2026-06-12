@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { useInitAuth } from '@/hooks/useInitAuth';
 import { ProtectedRoute } from '@/components/layout/protectedRoute';
 import { PublicRoute } from '@/components/layout/publicRoute';
+import { ScrollToTop } from '@/components/layout/scrollToTop';
 import LoginPage from '@/pages/auth/loginPage';
 import RegisterPage from '@/pages/auth/registerPage';
 import DashboardPage from '@/pages/dashboard/dashboardPage';
@@ -16,6 +17,7 @@ export default function App() {
 
   return (
     <>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/invite/:token" element={<InvitePage />} />

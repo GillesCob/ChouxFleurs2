@@ -58,11 +58,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-gradient-to-br from-teal-50 to-cyan-50 p-4">
+    <div className="fixed inset-0 overflow-y-auto bg-gradient-to-br from-teal-50 to-cyan-50">
+      <div className="flex min-h-full items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center">
-            <img src="/Chouxfleur2noir.png" alt="ChouxFleurs" className="h-12 w-12 object-contain" />
+        <CardHeader className="space-y-2 text-center pt-8 pb-4">
+          <div className="flex justify-center mb-2">
+            <img src="/Chouxfleur2noir.png" alt="ChouxFleurs" className="h-16 w-16 object-contain" />
           </div>
           <CardTitle className="text-2xl">ChouxFleurs</CardTitle>
           <CardDescription>
@@ -104,6 +105,7 @@ export default function LoginPage() {
           </CardFooter>
         </form>
       </Card>
+      </div>
     </div>
   );
 }

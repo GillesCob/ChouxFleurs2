@@ -119,6 +119,7 @@ export default function AdminPage() {
       await updateProjectMutation.mutateAsync({ id: renamingProjectId, name: data.name });
       toast({ title: 'Projet renommé !', description: `Nouveau nom : '${data.name}'` });
       setRenamingProjectId(null);
+      window.scrollTo({ top: 0, behavior: 'instant' });
     } catch (err) {
       toast({
         variant: 'destructive',
@@ -160,7 +161,7 @@ export default function AdminPage() {
             open={renamingProjectId !== null}
             onOpenChange={(open) => { if (!open) setRenamingProjectId(null); }}
           >
-            <DialogContent className="sm:max-w-sm">
+            <DialogContent className="top-4 translate-y-0 sm:top-[50%] sm:-translate-y-1/2 sm:max-w-sm">
               <DialogHeader>
                 <DialogTitle>Renommer le projet</DialogTitle>
               </DialogHeader>
