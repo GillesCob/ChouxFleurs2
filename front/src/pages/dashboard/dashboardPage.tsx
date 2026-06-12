@@ -163,8 +163,8 @@ export default function DashboardPage() {
         <Card className='cursor-pointer transition-shadow hover:shadow-md' onClick={() => navigate('/pronostics')}>
           <CardHeader>
             <div className='flex items-center gap-3'>
-              <div className='rounded-lg bg-purple-100 p-2'>
-                <Sparkles className='h-6 w-6 text-purple-600' />
+              <div className='rounded-lg bg-teal-100 p-2'>
+                <Sparkles className='h-6 w-6 text-teal-600' />
               </div>
               <div>
                 <CardTitle>Pronostics</CardTitle>
@@ -185,8 +185,8 @@ export default function DashboardPage() {
         <Card className='cursor-pointer transition-shadow hover:shadow-md' onClick={() => navigate('/liste-naissance')}>
           <CardHeader>
             <div className='flex items-center gap-3'>
-              <div className='rounded-lg bg-pink-100 p-2'>
-                <Gift className='h-6 w-6 text-pink-600' />
+              <div className='rounded-lg bg-amber-100 p-2'>
+                <Gift className='h-6 w-6 text-amber-600' />
               </div>
               <div>
                 <CardTitle>Liste de naissance</CardTitle>

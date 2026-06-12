@@ -78,7 +78,7 @@ type RevealFormData = z.infer<typeof revealSchema>;
 const genderLabels: Record<string, { label: string; class: string }> = {
   boy: { label: 'Garçon', class: 'bg-blue-100 text-blue-700' },
   girl: { label: 'Fille', class: 'bg-pink-100 text-pink-700' },
-  surprise: { label: 'Surprise', class: 'bg-purple-100 text-purple-700' },
+  surprise: { label: 'Surprise', class: 'bg-teal-100 text-teal-700' },
 };
 
 function ScoreBar({ score, max = MAX_SCORE }: { score: number; max?: number }) {

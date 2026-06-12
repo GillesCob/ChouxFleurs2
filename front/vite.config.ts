@@ -13,7 +13,7 @@ export default defineConfig({
         name: "ChouxFleurs — Pronostics & Liste de naissance",
         short_name: "ChouxFleurs",
         description: "Pronostics, liste de naissance et bien plus pour accueillir bébé !",
-        theme_color: "#EA4799",
+        theme_color: "#14B8A6",
         background_color: "#ffffff",
         display: "standalone",
         start_url: "/",

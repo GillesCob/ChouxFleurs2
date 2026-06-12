@@ -61,7 +61,7 @@ export default function InvitePage() {
   if (!info) return null;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-teal-50 to-cyan-50 p-4">
       <Card className="w-full max-w-md text-center">
         <CardHeader className="space-y-3">
           <div className="flex justify-center">

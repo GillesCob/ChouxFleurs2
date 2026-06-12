@@ -59,7 +59,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4">
+    <div className="flex h-screen overflow-hidden items-center justify-center bg-gradient-to-br from-teal-50 to-cyan-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center">
