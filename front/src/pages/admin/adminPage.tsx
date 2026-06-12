@@ -6,7 +6,6 @@ import { z } from 'zod';
 import { useAuthStore } from '@/store/authStore';
 import { useProjectStore } from '@/store/projectStore';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
-import { useUsersQuery } from '@/hooks/useUsersQuery';
 import { useUpdateProjectMutation } from '@/hooks/useUpdateProjectMutation';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -14,7 +13,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,7 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Crown, Pencil, Users } from 'lucide-react';
+import { Crown, Pencil } from 'lucide-react';
 
 const projectNameSchema = z.object({
   name: z.string().min(2, 'Au moins 2 caractères'),
@@ -41,8 +39,6 @@ export default function AdminPage() {
   const { currentProjectId } = useProjectStore();
   const { data: projects = [] } = useProjectsQuery();
   const currentProject = projects.find((p) => p.id === currentProjectId) ?? projects[0] ?? null;
-  const isProjectOwner = !!(user && currentProject && currentProject.owner.id === user.id);
-  const { data: users = [], isLoading } = useUsersQuery();
   const updateProjectMutation = useUpdateProjectMutation();
   const [openRename, setOpenRename] = useState(false);
 
@@ -71,79 +67,24 @@ export default function AdminPage() {
 
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Administration</h1>
-        <p className="text-muted-foreground">Gestion des utilisateurs inscrits</p>
+        <p className="text-muted-foreground">Gestion du projet</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center gap-3 pb-2">
-            <Users className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-base">Utilisateurs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{users.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-3 pb-2">
             <Crown className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-base">Votre rôle</CardTitle>
+            <p className="text-base font-semibold">Votre rôle</p>
           </CardHeader>
           <CardContent>
             <Badge className="bg-purple-100 text-purple-700">Admin système</Badge>
           </CardContent>
         </Card>
       </div>
-
-      {isProjectOwner && (
-        <>
-          <Separator />
-
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Tous les utilisateurs</h2>
-            <Card>
-              <CardHeader>
-                <CardDescription>Liste complète des comptes enregistrés.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y">
-                  {users.map((u) => (
-                    <div key={u.id} className="flex items-center justify-between px-6 py-4">
-                      <div>
-                        <p className="font-medium">
-                          {u.name}
-                          {u.id === user?.id && (
-                            <span className="ml-2 text-xs text-muted-foreground">(vous)</span>
-                          )}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{u.email}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>{u.role}</Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(u.createdAt).toLocaleDateString('fr-FR')}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </>
-      )}
 
       {currentProject && (
         <>
