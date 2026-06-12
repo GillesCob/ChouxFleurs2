@@ -301,22 +301,18 @@ export default function PronosticsPage() {
                   </Button>
                 </DialogTrigger>
               )}
-              <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+              <DialogContent
+                className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+              >
                 <DialogHeader>
                   <DialogTitle>
                     {editingPronostic ? 'Modifier mon pronostic' : 'Soumettre mon pronostic'}
                   </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmitPronostic)} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Votre nom</Label>
-                    <Input placeholder="Jean Dupont" {...register('authorName')} />
-                    {errors.authorName && (
-                      <p className="text-xs text-destructive">{errors.authorName.message}</p>
-                    )}
-                  </div>
                   {currentProject.hint && (
-                    <div className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                    <div className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
                       <span className="font-semibold">Indice :</span> {currentProject.hint}
                     </div>
                   )}
