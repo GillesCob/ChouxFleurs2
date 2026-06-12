@@ -41,6 +41,7 @@ export default function AdminPage() {
   const { currentProjectId } = useProjectStore();
   const { data: projects = [] } = useProjectsQuery();
   const currentProject = projects.find((p) => p.id === currentProjectId) ?? projects[0] ?? null;
+  const isProjectOwner = !!(user && currentProject && currentProject.owner.id === user.id);
   const { data: users = [], isLoading } = useUsersQuery();
   const updateProjectMutation = useUpdateProjectMutation();
   const [openRename, setOpenRename] = useState(false);
@@ -106,39 +107,43 @@ export default function AdminPage() {
         </Card>
       </div>
 
-      <Separator />
+      {isProjectOwner && (
+        <>
+          <Separator />
 
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Tous les utilisateurs</h2>
-        <Card>
-          <CardHeader>
-            <CardDescription>Liste complète des comptes enregistrés.</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y">
-              {users.map((u) => (
-                <div key={u.id} className="flex items-center justify-between px-6 py-4">
-                  <div>
-                    <p className="font-medium">
-                      {u.name}
-                      {u.id === user?.id && (
-                        <span className="ml-2 text-xs text-muted-foreground">(vous)</span>
-                      )}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{u.email}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>{u.role}</Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(u.createdAt).toLocaleDateString('fr-FR')}
-                    </span>
-                  </div>
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">Tous les utilisateurs</h2>
+            <Card>
+              <CardHeader>
+                <CardDescription>Liste complète des comptes enregistrés.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y">
+                  {users.map((u) => (
+                    <div key={u.id} className="flex items-center justify-between px-6 py-4">
+                      <div>
+                        <p className="font-medium">
+                          {u.name}
+                          {u.id === user?.id && (
+                            <span className="ml-2 text-xs text-muted-foreground">(vous)</span>
+                          )}
+                        </p>
+                        <p className="text-sm text-muted-foreground">{u.email}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={u.role === 'admin' ? 'default' : 'secondary'}>{u.role}</Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(u.createdAt).toLocaleDateString('fr-FR')}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
 
       {currentProject && (
         <>
@@ -185,14 +190,11 @@ export default function AdminPage() {
                 {currentProject.members && currentProject.members.length > 0 ? (
                   <div className="divide-y">
                     {currentProject.members.map((m) => (
-                      <div key={m.id} className="flex items-center justify-between px-6 py-3">
-                        <div>
-                          <p className="font-medium">{m.user.name}</p>
-                          <p className="text-sm text-muted-foreground">{m.user.email}</p>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
+                      <div key={m.id} className="px-6 py-3">
+                        <p className="font-medium">{m.user.name}</p>
+                        <p className="text-xs text-muted-foreground">
                           Rejoint le {new Date(m.joinedAt).toLocaleDateString('fr-FR')}
-                        </span>
+                        </p>
                       </div>
                     ))}
                   </div>

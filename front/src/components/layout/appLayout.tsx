@@ -77,7 +77,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <header className='sticky top-0 z-50 border-b bg-white/90 backdrop-blur'>
+      <header
+        className='sticky top-0 z-50 border-b bg-white/90 backdrop-blur'
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
         <div className='container flex h-16 items-center justify-between gap-4'>
 
           {/* Logo — desktop : texte "ChouxFleurs" / mobile : nom du projet */}
@@ -142,7 +145,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 </Button>
               </Link>
             ))}
-            {isAdmin && (
+            {isAdmin && isProjectOwner && (
               <Link to='/admin'>
                 <Button
                   variant='ghost'
@@ -206,7 +209,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                     {projects.map((p) => (
                       <button
                         key={p.id}
-                        onClick={() => { setCurrentProjectId(p.id); closeMenu(); }}
+                        onClick={() => { setCurrentProjectId(p.id); navigate('/dashboard'); closeMenu(); }}
                         className={cn(
                           'flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors',
                           p.id === currentProject.id
@@ -249,7 +252,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   {label}
                 </Link>
               ))}
-              {isAdmin && (
+              {isAdmin && isProjectOwner && (
                 <Link
                   to='/admin'
                   onClick={closeMenu}

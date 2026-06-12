@@ -15,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Check, Gift, Link2, Loader2, Lock, Plus, Sparkles, Trophy, Users } from 'lucide-react';
+import { Check, Gift, Link2, Loader2, Plus, Sparkles, Trophy, Users } from 'lucide-react';
 
 const projectNameSchema = z.object({
   name: z.string().min(2, 'Au moins 2 caractères'),
@@ -206,48 +206,38 @@ export default function DashboardPage() {
       </div>
 
       {/* Lien d'invitation — propriétaire uniquement */}
-      {currentProject && (
+      {currentProject && isProjectOwner && (
         <div className='space-y-3 rounded-xl border p-5'>
           <div className='flex items-center gap-2'>
             <Link2 className='h-4 w-4 text-primary' />
             <h2 className='font-semibold'>Inviter des amis</h2>
-            {!isProjectOwner && <Lock className='h-3.5 w-3.5 text-muted-foreground' />}
           </div>
-
-          {isProjectOwner ? (
-            <>
-              <div className='flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-3'>
-                <code className='flex-1 select-all truncate text-sm text-muted-foreground'>{inviteUrl}</code>
-                <Button size='sm' onClick={copyInviteLink} className='shrink-0 gap-2'>
-                  {copied ? (
-                    <>
-                      <Check className='h-3.5 w-3.5' />
-                      Copié !
-                    </>
-                  ) : (
-                    <>
-                      <Link2 className='h-3.5 w-3.5' />
-                      Copier le lien
-                    </>
-                  )}
-                </Button>
-              </div>
-              <div className='flex flex-wrap items-center gap-4 text-sm text-muted-foreground'>
-                <div className='flex items-center gap-1.5'>
-                  <Users className='h-3.5 w-3.5' />
-                  <span>
-                    {currentProject.memberCount} participant
-                    {currentProject.memberCount > 1 ? 's' : ''}
-                  </span>
-                </div>
-                <Badge variant='secondary'>Admin du projet</Badge>
-              </div>
-            </>
-          ) : (
-            <p className='text-sm text-muted-foreground'>
-              Seul le créateur du projet peut partager le lien d'invitation.
-            </p>
-          )}
+          <div className='flex items-center gap-2 rounded-lg border bg-muted/50 px-4 py-3'>
+            <code className='flex-1 select-all truncate text-sm text-muted-foreground'>{inviteUrl}</code>
+            <Button size='sm' onClick={copyInviteLink} className='shrink-0 gap-2'>
+              {copied ? (
+                <>
+                  <Check className='h-3.5 w-3.5' />
+                  Copié !
+                </>
+              ) : (
+                <>
+                  <Link2 className='h-3.5 w-3.5' />
+                  Copier le lien
+                </>
+              )}
+            </Button>
+          </div>
+          <div className='flex flex-wrap items-center gap-4 text-sm text-muted-foreground'>
+            <div className='flex items-center gap-1.5'>
+              <Users className='h-3.5 w-3.5' />
+              <span>
+                {currentProject.memberCount} participant
+                {currentProject.memberCount > 1 ? 's' : ''}
+              </span>
+            </div>
+            <Badge variant='secondary'>Admin du projet</Badge>
+          </div>
         </div>
       )}
     </div>
