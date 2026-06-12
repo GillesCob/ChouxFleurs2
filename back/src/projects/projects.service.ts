@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { UpdateProjectDto } from './dto/update-project.dto';
 import { RevealResultDto } from './dto/reveal-result.dto';
 import { calculateScore } from './scoring.util';
 
@@ -63,12 +64,18 @@ export class ProjectsService {
     return project;
   }
 
-  async updateName(id: number, name: string, userId: number) {
+  async update(id: number, dto: UpdateProjectDto, userId: number) {
     const isOwner = await this.isProjectOwner(id, userId);
-    if (!isOwner) throw new ForbiddenException('Seul le créateur peut renommer le projet');
+    if (!isOwner) throw new ForbiddenException('Seul le créateur peut modifier ce projet');
+
+    const data: Record<string, unknown> = {};
+    if (dto.name !== undefined) data.name = dto.name;
+    if ('termDate' in dto) data.termDate = dto.termDate ? new Date(dto.termDate) : null;
+    if ('hint' in dto) data.hint = dto.hint ?? null;
+
     const project = await this.prisma.project.update({
       where: { id },
-      data: { name },
+      data,
       include: projectInclude,
     });
     return this.enrichWithWinner(project);
@@ -130,6 +137,8 @@ export class ProjectsService {
       members: project.members ?? [],
       memberCount,
       winner,
+      termDate: project.termDate ? (project.termDate as Date).toISOString().slice(0, 10) : null,
+      hint: project.hint ?? null,
       createdAt: project.createdAt,
     };
   }

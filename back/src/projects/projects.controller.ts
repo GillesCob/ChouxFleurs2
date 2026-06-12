@@ -44,12 +44,12 @@ export class ProjectsController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  updateName(
+  update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateProjectDto,
     @CurrentUser() user: { id: number },
   ) {
-    return this.projectsService.updateName(id, dto.name, user.id);
+    return this.projectsService.update(id, dto, user.id);
   }
 
   @Post(':id/result')

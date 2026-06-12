@@ -72,7 +72,15 @@ export interface IProject {
   winner: IPronostic | null;
   memberCount: number;
   members?: IProjectMemberInfo[];
+  termDate?: string | null;
+  hint?: string | null;
   createdAt: string;
+}
+
+export interface IUpdateProjectDto {
+  name?: string;
+  termDate?: string | null;
+  hint?: string | null;
 }
 
 export interface IContribution {

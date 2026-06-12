@@ -39,6 +39,8 @@ model Project {
   name        String          @db.VarChar(150)
   inviteToken String          @unique @db.VarChar(36)
   ownerId     Int
+  termDate    DateTime?       @db.Date
+  hint        String?         @db.Text
   owner       User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   members     ProjectMember[]
   birthResult BirthResult?

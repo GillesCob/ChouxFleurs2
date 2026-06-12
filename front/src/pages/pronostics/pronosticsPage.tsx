@@ -315,6 +315,11 @@ export default function PronosticsPage() {
                       <p className="text-xs text-destructive">{errors.authorName.message}</p>
                     )}
                   </div>
+                  {currentProject.hint && (
+                    <div className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                      <span className="font-semibold">Indice :</span> {currentProject.hint}
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label>Sexe du bébé</Label>
                     <Select
@@ -346,6 +351,11 @@ export default function PronosticsPage() {
                     <Input type="date" {...register('birthDate')} />
                     {errors.birthDate && (
                       <p className="text-xs text-destructive">{errors.birthDate.message}</p>
+                    )}
+                    {currentProject.termDate && (
+                      <p className="text-xs text-teal-700">
+                        Date de terme : {new Date(currentProject.termDate).toLocaleDateString('fr-FR')}
+                      </p>
                     )}
                   </div>
                   <div className="grid grid-cols-2 gap-4">

@@ -41,6 +41,73 @@ const projectNameSchema = z.object({
 });
 type ProjectNameForm = z.infer<typeof projectNameSchema>;
 
+const hintsSchema = z.object({
+  termDate: z.string().optional(),
+  hint: z.string().optional(),
+});
+type HintsForm = z.infer<typeof hintsSchema>;
+
+// Formulaire d'indices inline par projet
+function ProjectHintsForm({ project }: { project: IProject }) {
+  const updateProjectMutation = useUpdateProjectMutation();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<HintsForm>({
+    defaultValues: {
+      termDate: project.termDate ?? '',
+      hint: project.hint ?? '',
+    },
+  });
+
+  const onSubmit = async (data: HintsForm) => {
+    try {
+      await updateProjectMutation.mutateAsync({
+        id: project.id,
+        termDate: data.termDate || null,
+        hint: data.hint || null,
+      });
+      toast({ title: 'Indices mis à jour !' });
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: err instanceof Error ? err.message : 'Impossible de mettre à jour les indices',
+      });
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+      <div className="space-y-1.5">
+        <Label htmlFor={`termDate-${project.id}`} className="text-sm">
+          Date du terme (indice)
+        </Label>
+        <Input
+          id={`termDate-${project.id}`}
+          type="date"
+          {...register('termDate')}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor={`hint-${project.id}`} className="text-sm">
+          Autre indice
+        </Label>
+        <Input
+          id={`hint-${project.id}`}
+          placeholder="Ex : il aime déjà le foot…"
+          {...register('hint')}
+        />
+      </div>
+      <Button type="submit" size="sm" disabled={isSubmitting}>
+        {isSubmitting ? 'Enregistrement...' : 'Enregistrer les indices'}
+      </Button>
+    </form>
+  );
+}
+
 export default function AdminPage() {
   const user = useAuthStore((s) => s.user);
   const { data: projects = [] } = useProjectsQuery();
@@ -54,7 +121,6 @@ export default function AdminPage() {
   const updateProjectMutation = useUpdateProjectMutation();
   const createProjectMutation = useCreateProjectMutation();
 
-  // ID du projet en cours de renommage (null = dialog fermé)
   const [renamingProjectId, setRenamingProjectId] = useState<number | null>(null);
   const [openDelete, setOpenDelete] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
@@ -194,6 +260,20 @@ export default function AdminPage() {
                   Renommer
                 </Button>
               </div>
+
+              {/* Indices du projet */}
+              <Card>
+                <CardHeader>
+                  <CardDescription>
+                    Indices affichés aux participants avant qu'ils ne remplissent leur pronostic.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ProjectHintsForm project={project} />
+                </CardContent>
+              </Card>
+
+              {/* Membres */}
               <Card>
                 <CardHeader>
                   <CardDescription>
