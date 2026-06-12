@@ -16,7 +16,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Flower2 } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Email invalide'),
@@ -59,11 +58,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden items-center justify-center bg-gradient-to-br from-teal-50 to-cyan-50 p-4">
+    <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-gradient-to-br from-teal-50 to-cyan-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center">
-            <Flower2 className="h-10 w-10 text-primary" />
+            <img src="/Chouxfleur2noir.png" alt="ChouxFleurs" className="h-12 w-12 object-contain" />
           </div>
           <CardTitle className="text-2xl">ChouxFleurs</CardTitle>
           <CardDescription>
