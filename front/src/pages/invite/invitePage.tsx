@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Baby, LogIn, UserPlus } from 'lucide-react';
+import { LogIn, UserPlus } from 'lucide-react';
 
 export default function InvitePage() {
   const { token } = useParams<{ token: string }>();
@@ -65,9 +65,7 @@ export default function InvitePage() {
       <Card className="w-full max-w-md text-center">
         <CardHeader className="space-y-3">
           <div className="flex justify-center">
-            <div className="rounded-full bg-primary/10 p-4">
-              <Baby className="h-10 w-10 text-primary" />
-            </div>
+            <img src="/Chouxfleur2noir.png" alt="ChouxFleurs" className="h-12 w-12 object-contain" />
           </div>
           <CardTitle className="text-2xl">Vous êtes invité !</CardTitle>
           <CardDescription className="text-base">
