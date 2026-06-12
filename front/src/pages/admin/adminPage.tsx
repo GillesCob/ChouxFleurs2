@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuthStore } from '@/store/authStore';
-import { useProjectStore } from '@/store/projectStore';
 import { useProjectsQuery } from '@/hooks/useProjectsQuery';
 import { useUpdateMeMutation } from '@/hooks/useUpdateMeMutation';
 import { useDeleteMeMutation } from '@/hooks/useDeleteMeMutation';
@@ -28,6 +27,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import type { IProject } from '@/types';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 
 const profileSchema = z.object({
@@ -43,23 +43,22 @@ type ProjectNameForm = z.infer<typeof projectNameSchema>;
 
 export default function AdminPage() {
   const user = useAuthStore((s) => s.user);
-  const { currentProjectId } = useProjectStore();
   const { data: projects = [] } = useProjectsQuery();
   const navigate = useNavigate();
 
-  const currentProject = projects.find((p) => p.id === currentProjectId) ?? projects[0] ?? null;
-  const isProjectOwner = !!(user && currentProject && currentProject.owner.id === user.id);
+  const ownedProjects = projects.filter((p) => p.owner.id === user?.id);
+  const projectSectionTitle = ownedProjects.length > 1 ? 'Mes projets' : 'Mon projet';
 
   const updateMeMutation = useUpdateMeMutation();
   const deleteMeMutation = useDeleteMeMutation();
   const updateProjectMutation = useUpdateProjectMutation();
   const createProjectMutation = useCreateProjectMutation();
 
-  const [openRename, setOpenRename] = useState(false);
+  // ID du projet en cours de renommage (null = dialog fermé)
+  const [renamingProjectId, setRenamingProjectId] = useState<number | null>(null);
   const [openDelete, setOpenDelete] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
 
-  // Formulaire profil
   const {
     register: profileRegister,
     handleSubmit: profileHandleSubmit,
@@ -69,7 +68,6 @@ export default function AdminPage() {
     defaultValues: { name: user?.name ?? '', email: user?.email ?? '' },
   });
 
-  // Formulaire renommage projet
   const {
     register: renameRegister,
     handleSubmit: renameHandleSubmit,
@@ -77,13 +75,17 @@ export default function AdminPage() {
     formState: { errors: renameErrors, isSubmitting: renameSubmitting },
   } = useForm<ProjectNameForm>({ resolver: zodResolver(projectNameSchema) });
 
-  // Formulaire création projet
   const {
     register: createRegister,
     handleSubmit: createHandleSubmit,
     reset: createReset,
     formState: { errors: createErrors, isSubmitting: createSubmitting },
   } = useForm<ProjectNameForm>({ resolver: zodResolver(projectNameSchema) });
+
+  const openRenameFor = (project: IProject) => {
+    renameReset({ name: project.name });
+    setRenamingProjectId(project.id);
+  };
 
   const onUpdateProfile = async (data: ProfileForm) => {
     try {
@@ -112,12 +114,11 @@ export default function AdminPage() {
   };
 
   const onRenameProject = async (data: ProjectNameForm) => {
-    if (!currentProject) return;
+    if (!renamingProjectId) return;
     try {
-      await updateProjectMutation.mutateAsync({ id: currentProject.id, name: data.name });
+      await updateProjectMutation.mutateAsync({ id: renamingProjectId, name: data.name });
       toast({ title: 'Projet renommé !', description: `Nouveau nom : '${data.name}'` });
-      renameReset();
-      setOpenRename(false);
+      setRenamingProjectId(null);
     } catch (err) {
       toast({
         variant: 'destructive',
@@ -149,7 +150,121 @@ export default function AdminPage() {
         <p className="text-muted-foreground">Gérez vos informations personnelles</p>
       </div>
 
-      {/* Profil — accessible à tous */}
+      {/* Projets possédés */}
+      {ownedProjects.length > 0 ? (
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">{projectSectionTitle}</h2>
+
+          {/* Dialog de renommage — partagé entre tous les projets */}
+          <Dialog
+            open={renamingProjectId !== null}
+            onOpenChange={(open) => { if (!open) setRenamingProjectId(null); }}
+          >
+            <DialogContent className="sm:max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Renommer le projet</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={renameHandleSubmit(onRenameProject)} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="renameName">Nouveau nom</Label>
+                  <Input id="renameName" {...renameRegister('name')} />
+                  {renameErrors.name && (
+                    <p className="text-xs text-destructive">{renameErrors.name.message}</p>
+                  )}
+                </div>
+                <Button type="submit" className="w-full" disabled={renameSubmitting}>
+                  {renameSubmitting ? 'Renommage...' : 'Enregistrer'}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          {ownedProjects.map((project) => (
+            <div key={project.id} className="space-y-3">
+              <div className="flex items-center gap-3">
+                <h3 className="font-semibold text-base">{project.name}</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => openRenameFor(project)}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  Renommer
+                </Button>
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardDescription>
+                    Membres ayant rejoint ce projet via le lien d'invitation.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {project.members && project.members.length > 0 ? (
+                    <div className="divide-y">
+                      {project.members.map((m) => (
+                        <div key={m.id} className="px-6 py-3">
+                          <p className="font-medium">{m.user.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Rejoint le {new Date(m.joinedAt).toLocaleDateString('fr-FR')}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="px-6 py-4 text-sm text-muted-foreground">
+                      Aucun membre pour l'instant. Partagez votre lien d'invitation !
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Aucun projet possédé — proposer la création */
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Mon projet</h2>
+          <Card>
+            <CardHeader>
+              <CardDescription>
+                Vous n'avez pas encore de projet. Créez-en un pour commencer !
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Dialog open={openCreate} onOpenChange={setOpenCreate}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Nouveau projet
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle>Créer un nouveau projet bébé</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={createHandleSubmit(onCreateProject)} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="createName">Nom du projet</Label>
+                      <Input id="createName" placeholder="Bébé Martin 2026" {...createRegister('name')} />
+                      {createErrors.name && (
+                        <p className="text-xs text-destructive">{createErrors.name.message}</p>
+                      )}
+                    </div>
+                    <Button type="submit" className="w-full" disabled={createSubmitting}>
+                      {createSubmitting ? 'Création...' : 'Créer le projet'}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <Separator />
+
+      {/* Mon profil */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Mon profil</h2>
         <Card>
@@ -177,7 +292,7 @@ export default function AdminPage() {
         </Card>
       </div>
 
-      {/* Suppression de compte */}
+      {/* Zone de danger */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Zone de danger</h2>
         <Card className="border-destructive/40">
@@ -219,111 +334,6 @@ export default function AdminPage() {
           </CardContent>
         </Card>
       </div>
-
-      <Separator />
-
-      {/* Projet actif — propriétaire uniquement */}
-      {isProjectOwner && currentProject && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-semibold">Projet actif : {currentProject.name}</h2>
-            <Dialog open={openRename} onOpenChange={(open) => {
-              setOpenRename(open);
-              if (open) renameReset({ name: currentProject.name });
-            }}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Pencil className="h-3.5 w-3.5" />
-                  Renommer
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-sm">
-                <DialogHeader>
-                  <DialogTitle>Renommer le projet</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={renameHandleSubmit(onRenameProject)} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="renameName">Nouveau nom</Label>
-                    <Input id="renameName" {...renameRegister('name')} />
-                    {renameErrors.name && (
-                      <p className="text-xs text-destructive">{renameErrors.name.message}</p>
-                    )}
-                  </div>
-                  <Button type="submit" className="w-full" disabled={renameSubmitting}>
-                    {renameSubmitting ? 'Renommage...' : 'Enregistrer'}
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-          <Card>
-            <CardHeader>
-              <CardDescription>
-                Membres ayant rejoint ce projet via le lien d'invitation.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              {currentProject.members && currentProject.members.length > 0 ? (
-                <div className="divide-y">
-                  {currentProject.members.map((m) => (
-                    <div key={m.id} className="px-6 py-3">
-                      <p className="font-medium">{m.user.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Rejoint le {new Date(m.joinedAt).toLocaleDateString('fr-FR')}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="px-6 py-4 text-sm text-muted-foreground">
-                  Aucun membre pour l'instant. Partagez votre lien d'invitation !
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Créer un projet — si aucun projet disponible */}
-      {projects.length === 0 && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Créer un projet</h2>
-          <Card>
-            <CardHeader>
-              <CardDescription>
-                Vous n'avez pas encore de projet. Créez-en un pour commencer !
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Dialog open={openCreate} onOpenChange={setOpenCreate}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Nouveau projet
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-sm">
-                  <DialogHeader>
-                    <DialogTitle>Créer un nouveau projet bébé</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={createHandleSubmit(onCreateProject)} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="createName">Nom du projet</Label>
-                      <Input id="createName" placeholder="Bébé Martin 2026" {...createRegister('name')} />
-                      {createErrors.name && (
-                        <p className="text-xs text-destructive">{createErrors.name.message}</p>
-                      )}
-                    </div>
-                    <Button type="submit" className="w-full" disabled={createSubmitting}>
-                      {createSubmitting ? 'Création...' : 'Créer le projet'}
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 }
