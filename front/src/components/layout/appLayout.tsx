@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useIosInstallPrompt } from '@/hooks/useIosInstallPrompt';
+import { IosInstallModal } from '@/components/IosInstallModal';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/authStore';
 import { useProjectStore } from '@/store/projectStore';
@@ -40,6 +42,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { show: showInstall, canInstall, dismiss: dismissInstall, close: closeInstall, openManually } = useIosInstallPrompt();
 
   const currentProject = projects.find((p) => p.id === currentProjectId) ?? projects[0] ?? null;
   const isProjectOwner = !!(user && currentProject && currentProject.owner.id === user.id);
@@ -276,8 +279,25 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <main className='container flex-1 py-8'>{children}</main>
 
       <footer className='border-t py-4 text-center text-sm text-muted-foreground'>
-        © 2026 ChouxFleurs2
+        <span>© 2026 ChouxFleurs2</span>
+        {canInstall && (
+          <>
+            <span className='mx-2'>·</span>
+            <button
+              onClick={openManually}
+              className='underline underline-offset-2 hover:text-foreground transition-colors'
+            >
+              Installer l'app
+            </button>
+          </>
+        )}
       </footer>
+
+      <IosInstallModal
+        open={showInstall}
+        onClose={closeInstall}
+        onDismiss={dismissInstall}
+      />
     </div>
   );
 }
