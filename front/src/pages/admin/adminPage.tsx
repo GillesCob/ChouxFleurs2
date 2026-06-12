@@ -83,7 +83,7 @@ function ProjectHintsForm({ project }: { project: IProject }) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
       <div className="space-y-1.5">
         <Label htmlFor={`termDate-${project.id}`} className="text-sm">
-          Date du terme (indice)
+          Date du terme
         </Label>
         <Input
           id={`termDate-${project.id}`}
