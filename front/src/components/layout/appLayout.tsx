@@ -81,7 +81,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <div className='container flex h-16 items-center justify-between gap-4'>
 
           {/* Logo — desktop : texte "ChouxFleurs" / mobile : nom du projet */}
-          <Link to='/dashboard' className='flex items-center gap-2 shrink-0 min-w-0'>
+          <Link to='/dashboard' className='flex min-w-0 flex-1 items-center gap-2 md:flex-none'>
             <img src='/Chouxfleur2noir.png' alt='ChouxFleurs' className='h-10 w-10 shrink-0 md:h-20 md:w-20' />
             <span className='hidden text-lg font-semibold md:block'>ChouxFleurs</span>
             <span className='truncate text-base font-semibold md:hidden'>
@@ -180,16 +180,21 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Mobile — menu latéral */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent side='left' className='flex w-72 flex-col gap-0 p-0'>
-          <SheetHeader className='border-b px-4 py-4'>
-            <SheetTitle className='flex items-center gap-2 text-left'>
-              <img src='/Chouxfleur2noir.png' alt='ChouxFleurs' className='h-8 w-8' />
+        {/* max-w-[85vw] : évite que le drawer dépasse sur petits écrans
+            overflow-hidden : le scroll se fait sur le div interne, pas ici
+            pr-0 / p-0 : annule le p-6 par défaut de shadcn */}
+        <SheetContent side='left' className='flex w-[280px] max-w-[85vw] flex-col overflow-hidden p-0'>
+          {/* pr-12 : réserve la place pour le bouton ✕ positionné en absolute right-4 top-4 */}
+          <SheetHeader className='shrink-0 border-b px-4 pb-4 pt-4 pr-12 text-left'>
+            <SheetTitle className='flex items-center gap-2'>
+              <img src='/Chouxfleur2noir.png' alt='ChouxFleurs' className='h-8 w-8 shrink-0' />
               ChouxFleurs
             </SheetTitle>
-            <p className='text-sm text-muted-foreground'>{user?.name}</p>
+            <p className='truncate text-sm text-muted-foreground'>{user?.name}</p>
           </SheetHeader>
 
-          <div className='flex-1 overflow-y-auto px-4 py-4 space-y-6'>
+          {/* min-h-0 : indispensable sur iOS pour que flex-1 + overflow-y-auto fonctionne */}
+          <div className='min-h-0 flex-1 overflow-y-auto px-4 py-4 space-y-6'>
             {/* Sélecteur de projet */}
             {currentProject && (
               <div className='space-y-2'>
