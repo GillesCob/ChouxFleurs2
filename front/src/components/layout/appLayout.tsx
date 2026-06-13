@@ -18,7 +18,6 @@ import {
   LogOut,
   Menu,
   Sparkles,
-  Trophy,
   User,
 } from 'lucide-react';
 import {
@@ -56,9 +55,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   const closeMenu = () => setMobileMenuOpen(false);
 
-  const winner = currentProject?.winner ?? null;
-  const hasResult = !!currentProject?.birthResult;
-
   const visibleNavItems = navItems.filter(({ to }) => {
     if (isProjectOwner || !currentProject) return true;
     if (to === '/pronostics' && !currentProject.pronosticsEnabled) return false;
@@ -68,22 +64,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className='flex min-h-screen flex-col'>
-      {hasResult && winner && (
-        <div className='bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 py-2 text-center text-sm font-medium text-yellow-900'>
-          <Trophy className='mr-1.5 inline h-4 w-4' />
-          Gagnant : <span className='font-bold'>{winner.authorName}</span> avec{' '}
-          <span className='font-bold'>{winner.score} pts</span> — Prénom :{' '}
-          <span className='font-bold'>{winner.firstName}</span>
-          {winner.scoreDetails && (
-            <span className='ml-2 opacity-75'>
-              (genre {winner.scoreDetails.gender} · prénom {winner.scoreDetails.firstName} · date{' '}
-              {winner.scoreDetails.birthDate} · poids {winner.scoreDetails.weight} · taille{' '}
-              {winner.scoreDetails.height})
-            </span>
-          )}
-        </div>
-      )}
-
       <header
         className='sticky top-0 z-50 border-b bg-white/90 backdrop-blur'
         style={{ paddingTop: 'env(safe-area-inset-top)' }}

@@ -95,7 +95,7 @@ function medianDate(isoStrings: string[]): string {
   if (isoStrings.length === 0) return '';
   const timestamps = isoStrings.map((s) => new Date(s).getTime());
   const med = median(timestamps);
-  return new Date(med).toLocaleDateString('fr-FR');
+  return new Date(med).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
 }
 
 function GenderPieChart({ boys, girls }: { boys: number; girls: number }) {
@@ -179,20 +179,20 @@ function TendanceTab({ pronostics }: { pronostics: IPronostic[] }) {
           <CardDescription>Basées sur {pronostics.length} pronostic{pronostics.length > 1 ? 's' : ''}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-3 gap-2 text-center">
             <div className="space-y-1">
               <Calendar className="mx-auto h-5 w-5 text-muted-foreground" />
-              <p className="text-lg font-semibold">{medianBirthDate}</p>
+              <p className="text-sm font-semibold tabular-nums">{medianBirthDate}</p>
               <p className="text-xs text-muted-foreground">Date de naissance</p>
             </div>
             <div className="space-y-1">
               <Scale className="mx-auto h-5 w-5 text-muted-foreground" />
-              <p className="text-lg font-semibold">{(medianWeight / 1000).toFixed(2)} kg</p>
+              <p className="text-sm font-semibold tabular-nums">{(medianWeight / 1000).toFixed(2)} kg</p>
               <p className="text-xs text-muted-foreground">Poids</p>
             </div>
             <div className="space-y-1">
               <Ruler className="mx-auto h-5 w-5 text-muted-foreground" />
-              <p className="text-lg font-semibold">{medianHeight} cm</p>
+              <p className="text-sm font-semibold tabular-nums">{medianHeight} cm</p>
               <p className="text-xs text-muted-foreground">Taille</p>
             </div>
           </div>
@@ -242,6 +242,142 @@ function ScoreBar({ score, max = MAX_SCORE }: { score: number; max?: number }) {
   );
 }
 
+type ScoreField = 'gender' | 'firstName' | 'birthDate' | 'weight' | 'height';
+
+const scoreScales: Record<ScoreField, { label: string; max: number; rows: { pts: number; condition: string }[] }> = {
+  gender: {
+    label: 'Genre',
+    max: 20,
+    rows: [
+      { pts: 20, condition: 'Bonne réponse' },
+      { pts: 0, condition: 'Mauvaise réponse' },
+    ],
+  },
+  firstName: {
+    label: 'Prénom',
+    max: 30,
+    rows: [
+      { pts: 30, condition: 'Prénom exact' },
+      { pts: 0, condition: 'Prénom différent' },
+    ],
+  },
+  birthDate: {
+    label: 'Date',
+    max: 30,
+    rows: [
+      { pts: 30, condition: 'Date exacte' },
+      { pts: 20, condition: 'Écart ≤ 1 jour' },
+      { pts: 10, condition: 'Écart ≤ 3 jours' },
+      { pts: 5, condition: 'Écart ≤ 7 jours' },
+      { pts: 0, condition: 'Écart > 7 jours' },
+    ],
+  },
+  weight: {
+    label: 'Poids',
+    max: 20,
+    rows: [
+      { pts: 20, condition: 'Écart ≤ 50 g' },
+      { pts: 15, condition: 'Écart ≤ 200 g' },
+      { pts: 10, condition: 'Écart ≤ 500 g' },
+      { pts: 5, condition: 'Écart ≤ 1 000 g' },
+      { pts: 0, condition: 'Écart > 1 000 g' },
+    ],
+  },
+  height: {
+    label: 'Taille',
+    max: 10,
+    rows: [
+      { pts: 10, condition: 'Taille exacte' },
+      { pts: 7, condition: 'Écart ≤ 1 cm' },
+      { pts: 5, condition: 'Écart ≤ 2 cm' },
+      { pts: 2, condition: 'Écart ≤ 3 cm' },
+      { pts: 0, condition: 'Écart > 3 cm' },
+    ],
+  },
+};
+
+function getPronosticValueForField(p: IPronostic, field: ScoreField): string {
+  if (field === 'gender') return p.gender === 'boy' ? 'Garçon' : p.gender === 'girl' ? 'Fille' : 'Surprise';
+  if (field === 'firstName') return p.firstName;
+  if (field === 'birthDate') return new Date(p.birthDate).toLocaleDateString('fr-FR');
+  if (field === 'weight') return `${(p.weightGrams / 1000).toFixed(2)} kg`;
+  return `${p.heightCm} cm`;
+}
+
+function getResultValueForField(
+  result: { gender: string; firstName: string; birthDate: string; weightGrams: number; heightCm: number },
+  field: ScoreField,
+): string {
+  if (field === 'gender') return result.gender === 'boy' ? 'Garçon' : 'Fille';
+  if (field === 'firstName') return result.firstName;
+  if (field === 'birthDate') return new Date(result.birthDate).toLocaleDateString('fr-FR');
+  if (field === 'weight') return `${(result.weightGrams / 1000).toFixed(2)} kg`;
+  return `${result.heightCm} cm`;
+}
+
+interface IScoreDetailPopupProps {
+  pronostic: IPronostic;
+  field: ScoreField;
+  birthResult: { gender: string; firstName: string; birthDate: string; weightGrams: number; heightCm: number };
+  onClose: () => void;
+}
+
+function ScoreDetailPopup({ pronostic, field, birthResult, onClose }: IScoreDetailPopupProps) {
+  const sd = pronostic.scoreDetails;
+  if (!sd) return null;
+  const obtained =
+    field === 'gender' ? sd.gender
+    : field === 'firstName' ? sd.firstName
+    : field === 'birthDate' ? sd.birthDate
+    : field === 'weight' ? sd.weight
+    : sd.height;
+  const scale = scoreScales[field];
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-xs">
+        <DialogHeader>
+          <DialogTitle>
+            {scale.label} — {obtained} / {scale.max} pts
+          </DialogTitle>
+        </DialogHeader>
+        <div className="rounded-lg bg-muted p-3 text-sm space-y-1.5">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Pronostic</span>
+            <span className="font-medium">{getPronosticValueForField(pronostic, field)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Bonne réponse</span>
+            <span className="font-medium">{getResultValueForField(birthResult, field)}</span>
+          </div>
+          <Separator />
+          <div className="flex justify-between font-semibold">
+            <span>Points obtenus</span>
+            <span>{obtained} / {scale.max}</span>
+          </div>
+        </div>
+        <div className="space-y-1">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Barème</p>
+          {scale.rows.map(({ pts, condition }, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                'flex items-center justify-between rounded px-2 py-1 text-sm',
+                pts === obtained
+                  ? 'bg-primary/10 font-medium text-primary'
+                  : 'text-muted-foreground',
+              )}
+            >
+              <span>{condition}</span>
+              <span className="font-semibold tabular-nums">{pts} pts</span>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function PronosticsPage() {
   const user = useAuthStore((s) => s.user);
   const { currentProjectId } = useProjectStore();
@@ -260,6 +396,7 @@ export default function PronosticsPage() {
   const [editingPronostic, setEditingPronostic] = useState<IPronostic | null>(null);
   const [openReveal, setOpenReveal] = useState(false);
   const [activeTab, setActiveTab] = useState<'tendance' | 'pronos'>('tendance');
+  const [scorePopup, setScorePopup] = useState<{ pronostic: IPronostic; field: ScoreField } | null>(null);
 
   const {
     register,
@@ -537,9 +674,7 @@ export default function PronosticsPage() {
 
       {birthResult && (
         <div className="rounded-xl border border-green-200 bg-green-50 p-4">
-          <p className="mb-1 text-sm font-semibold text-green-800">
-            Vraies réponses révélées par {currentProject.owner.name}
-          </p>
+          <p className="mb-1 text-sm font-semibold text-green-800">Bonnes réponses</p>
           <div className="flex flex-wrap gap-3 text-sm text-green-700">
             <span>Sexe : <strong>{birthResult.gender === 'boy' ? 'Garçon' : 'Fille'}</strong></span>
             <span>Prénom : <strong>{birthResult.firstName}</strong></span>
@@ -646,19 +781,24 @@ export default function PronosticsPage() {
                           {p.scoreDetails && (
                             <div className="grid grid-cols-5 gap-1 text-center text-xs">
                               {[
-                                { label: 'Genre', val: p.scoreDetails.gender, max: 20 },
-                                { label: 'Prénom', val: p.scoreDetails.firstName, max: 30 },
-                                { label: 'Date', val: p.scoreDetails.birthDate, max: 30 },
-                                { label: 'Poids', val: p.scoreDetails.weight, max: 20 },
-                                { label: 'Taille', val: p.scoreDetails.height, max: 10 },
-                              ].map(({ label, val, max }) => (
-                                <div
+                                { label: 'Genre', field: 'gender', val: p.scoreDetails.gender, max: 20 },
+                                { label: 'Prénom', field: 'firstName', val: p.scoreDetails.firstName, max: 30 },
+                                { label: 'Date', field: 'birthDate', val: p.scoreDetails.birthDate, max: 30 },
+                                { label: 'Poids', field: 'weight', val: p.scoreDetails.weight, max: 20 },
+                                { label: 'Taille', field: 'height', val: p.scoreDetails.height, max: 10 },
+                              ].map(({ label, field, val, max }) => (
+                                <button
                                   key={label}
-                                  className={`rounded p-1 ${val === max ? 'bg-green-100 text-green-700' : val > 0 ? 'bg-blue-50 text-blue-700' : 'bg-muted text-muted-foreground'}`}
+                                  type="button"
+                                  onClick={() => setScorePopup({ pronostic: p, field: field as ScoreField })}
+                                  className={cn(
+                                    'w-full cursor-pointer rounded p-1 transition-opacity hover:opacity-80',
+                                    val === max ? 'bg-green-100 text-green-700' : val > 0 ? 'bg-blue-50 text-blue-700' : 'bg-muted text-muted-foreground',
+                                  )}
                                 >
                                   <div className="font-bold">{val}</div>
                                   <div className="truncate opacity-70">{label}</div>
-                                </div>
+                                </button>
                               ))}
                             </div>
                           )}
@@ -692,6 +832,15 @@ export default function PronosticsPage() {
             </div>
           )}
         </div>
+      )}
+
+      {scorePopup && birthResult && (
+        <ScoreDetailPopup
+          pronostic={scorePopup.pronostic}
+          field={scorePopup.field}
+          birthResult={birthResult}
+          onClose={() => setScorePopup(null)}
+        />
       )}
     </div>
   );
