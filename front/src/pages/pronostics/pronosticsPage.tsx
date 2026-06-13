@@ -284,7 +284,7 @@ export default function PronosticsPage() {
     setEditingPronostic(p);
     reset({
       authorName: p.authorName,
-      gender: p.gender,
+      gender: p.gender as 'boy' | 'girl',
       birthDate: new Date(p.birthDate).toISOString().slice(0, 10),
       weightGrams: p.weightGrams,
       heightCm: p.heightCm,
