@@ -69,6 +69,9 @@ export default function DashboardPage() {
   const winner = currentProject?.winner ?? null;
   const hasResult = !!currentProject?.birthResult;
 
+  const showPronostics = isProjectOwner || !currentProject || (currentProject.pronosticsEnabled ?? true);
+  const showBirthList = isProjectOwner || !currentProject || (currentProject.birthListEnabled ?? true);
+
   if (isLoading) {
     return (
       <div className='flex items-center justify-center py-24'>
@@ -159,51 +162,57 @@ export default function DashboardPage() {
       <Separator />
 
       {/* Navigation rapide */}
-      <div className='grid gap-4 sm:grid-cols-2'>
-        <Card className='cursor-pointer transition-shadow hover:shadow-md' onClick={() => navigate('/pronostics')}>
-          <CardHeader>
-            <div className='flex items-center gap-3'>
-              <div className='rounded-lg bg-teal-100 p-2'>
-                <Sparkles className='h-6 w-6 text-teal-600' />
-              </div>
-              <div>
-                <CardTitle>Pronostics</CardTitle>
-                <CardDescription>Tentez votre chance !</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className='text-sm text-muted-foreground'>
-              Proposez vos pronostics sur le prénom, le sexe, la date, le poids et la taille du bébé.
-            </p>
-            <Button className='mt-4 w-full' variant='outline'>
-              Voir les pronostics
-            </Button>
-          </CardContent>
-        </Card>
+      {(showPronostics || showBirthList) && (
+        <div className={`grid gap-4 ${showPronostics && showBirthList ? 'sm:grid-cols-2' : ''}`}>
+          {showPronostics && (
+            <Card className='cursor-pointer transition-shadow hover:shadow-md' onClick={() => navigate('/pronostics')}>
+              <CardHeader>
+                <div className='flex items-center gap-3'>
+                  <div className='rounded-lg bg-teal-100 p-2'>
+                    <Sparkles className='h-6 w-6 text-teal-600' />
+                  </div>
+                  <div>
+                    <CardTitle>Pronostics</CardTitle>
+                    <CardDescription>Tentez votre chance !</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className='text-sm text-muted-foreground'>
+                  Proposez vos pronostics sur le prénom, le sexe, la date, le poids et la taille du bébé.
+                </p>
+                <Button className='mt-4 w-full' variant='outline'>
+                  Voir les pronostics
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
-        <Card className='cursor-pointer transition-shadow hover:shadow-md' onClick={() => navigate('/liste-naissance')}>
-          <CardHeader>
-            <div className='flex items-center gap-3'>
-              <div className='rounded-lg bg-amber-100 p-2'>
-                <Gift className='h-6 w-6 text-amber-600' />
-              </div>
-              <div>
-                <CardTitle>Liste de naissance</CardTitle>
-                <CardDescription>Offrez avec le cœur</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className='text-sm text-muted-foreground'>
-              Découvrez la liste de cadeaux et réservez un article pour faire plaisir aux heureux parents.
-            </p>
-            <Button className='mt-4 w-full' variant='outline'>
-              Voir la liste
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+          {showBirthList && (
+            <Card className='cursor-pointer transition-shadow hover:shadow-md' onClick={() => navigate('/liste-naissance')}>
+              <CardHeader>
+                <div className='flex items-center gap-3'>
+                  <div className='rounded-lg bg-amber-100 p-2'>
+                    <Gift className='h-6 w-6 text-amber-600' />
+                  </div>
+                  <div>
+                    <CardTitle>Liste de naissance</CardTitle>
+                    <CardDescription>Offrez avec le cœur</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className='text-sm text-muted-foreground'>
+                  Découvrez la liste de cadeaux et réservez un article pour faire plaisir aux heureux parents.
+                </p>
+                <Button className='mt-4 w-full' variant='outline'>
+                  Voir la liste
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Lien d'invitation — propriétaire uniquement */}
       {currentProject && isProjectOwner && (
