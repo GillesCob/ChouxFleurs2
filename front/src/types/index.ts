@@ -74,6 +74,8 @@ export interface IProject {
   members?: IProjectMemberInfo[];
   termDate?: string | null;
   hint?: string | null;
+  pronosticsEnabled: boolean;
+  birthListEnabled: boolean;
   createdAt: string;
 }
 
@@ -81,6 +83,8 @@ export interface IUpdateProjectDto {
   name?: string;
   termDate?: string | null;
   hint?: string | null;
+  pronosticsEnabled?: boolean;
+  birthListEnabled?: boolean;
 }
 
 export interface IContribution {

@@ -58,8 +58,8 @@ export function IosInstallModal({ open, onClose, onDismiss }: IIosInstallModalPr
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className='sm:max-w-sm'>
         <DialogHeader>
-          <div className='mb-2 flex justify-center'>
-            <img src='/pwa-192x192.png' alt='ChouxFleurs' className='h-16 w-16 rounded-2xl shadow' />
+          <div className='flex justify-center'>
+            <img src='/pwa-192x192.png' alt='ChouxFleurs' className='h-24 w-24 rounded-2xl shadow' />
           </div>
           <DialogTitle className='text-center text-xl'>Installer ChouxFleurs</DialogTitle>
           <DialogDescription className='text-center'>

@@ -72,6 +72,8 @@ export class ProjectsService {
     if (dto.name !== undefined) data.name = dto.name;
     if ('termDate' in dto) data.termDate = dto.termDate ? new Date(dto.termDate) : null;
     if ('hint' in dto) data.hint = dto.hint ?? null;
+    if (dto.pronosticsEnabled !== undefined) data.pronosticsEnabled = dto.pronosticsEnabled;
+    if (dto.birthListEnabled !== undefined) data.birthListEnabled = dto.birthListEnabled;
 
     const project = await this.prisma.project.update({
       where: { id },
@@ -139,6 +141,8 @@ export class ProjectsService {
       winner,
       termDate: project.termDate ? (project.termDate as Date).toISOString().slice(0, 10) : null,
       hint: project.hint ?? null,
+      pronosticsEnabled: project.pronosticsEnabled ?? true,
+      birthListEnabled: project.birthListEnabled ?? true,
       createdAt: project.createdAt,
     };
   }

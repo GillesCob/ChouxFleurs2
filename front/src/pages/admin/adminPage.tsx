@@ -27,6 +27,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 import type { IProject } from '@/types';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 
@@ -105,6 +106,50 @@ function ProjectHintsForm({ project }: { project: IProject }) {
         {isSubmitting ? 'Enregistrement...' : 'Enregistrer les indices'}
       </Button>
     </form>
+  );
+}
+
+function ProjectVisibilityToggles({ project }: { project: IProject }) {
+  const updateProjectMutation = useUpdateProjectMutation();
+
+  const toggle = async (field: 'pronosticsEnabled' | 'birthListEnabled', value: boolean) => {
+    try {
+      await updateProjectMutation.mutateAsync({ id: project.id, [field]: value });
+      toast({ title: 'Paramètre mis à jour !' });
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: err instanceof Error ? err.message : 'Impossible de mettre à jour',
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5">
+          <Label className="text-sm">Section Pronostics</Label>
+          <p className="text-xs text-muted-foreground">Visible par les participants</p>
+        </div>
+        <Switch
+          checked={project.pronosticsEnabled}
+          onCheckedChange={(v) => toggle('pronosticsEnabled', v)}
+          disabled={updateProjectMutation.isPending}
+        />
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5">
+          <Label className="text-sm">Liste de naissance</Label>
+          <p className="text-xs text-muted-foreground">Visible par les participants</p>
+        </div>
+        <Switch
+          checked={project.birthListEnabled}
+          onCheckedChange={(v) => toggle('birthListEnabled', v)}
+          disabled={updateProjectMutation.isPending}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -270,6 +315,18 @@ export default function AdminPage() {
                 </CardHeader>
                 <CardContent>
                   <ProjectHintsForm project={project} />
+                </CardContent>
+              </Card>
+
+              {/* Visibilité des sections */}
+              <Card>
+                <CardHeader>
+                  <CardDescription>
+                    Activez ou désactivez les sections visibles par les participants.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ProjectVisibilityToggles project={project} />
                 </CardContent>
               </Card>
 

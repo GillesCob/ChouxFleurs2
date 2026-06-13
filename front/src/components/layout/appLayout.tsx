@@ -59,6 +59,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const winner = currentProject?.winner ?? null;
   const hasResult = !!currentProject?.birthResult;
 
+  const visibleNavItems = navItems.filter(({ to }) => {
+    if (isProjectOwner || !currentProject) return true;
+    if (to === '/pronostics' && !currentProject.pronosticsEnabled) return false;
+    if (to === '/liste-naissance' && !currentProject.birthListEnabled) return false;
+    return true;
+  });
+
   return (
     <div className='flex min-h-screen flex-col'>
       {hasResult && winner && (
@@ -133,7 +140,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
           {/* Desktop — navigation */}
           <nav className='hidden items-center gap-1 md:flex'>
-            {navItems.map(({ to, label, icon: Icon }) => (
+            {visibleNavItems.map(({ to, label, icon: Icon }) => (
               <Link key={to} to={to}>
                 <Button
                   variant='ghost'
@@ -224,7 +231,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
             {/* Navigation */}
             <nav className='space-y-1'>
-              {navItems.map(({ to, label, icon: Icon }) => (
+              {visibleNavItems.map(({ to, label, icon: Icon }) => (
                 <Link
                   key={to}
                   to={to}

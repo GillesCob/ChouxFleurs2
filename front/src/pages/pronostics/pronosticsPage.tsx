@@ -39,6 +39,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 import {
   Calendar,
   Crown,
@@ -81,6 +82,146 @@ const genderLabels: Record<string, { label: string; class: string }> = {
   surprise: { label: 'Surprise', class: 'bg-teal-100 text-teal-700' },
 };
 
+function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0
+    ? sorted[mid]
+    : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
+}
+
+function medianDate(isoStrings: string[]): string {
+  if (isoStrings.length === 0) return '';
+  const timestamps = isoStrings.map((s) => new Date(s).getTime());
+  const med = median(timestamps);
+  return new Date(med).toLocaleDateString('fr-FR');
+}
+
+function GenderPieChart({ boys, girls }: { boys: number; girls: number }) {
+  const total = boys + girls;
+  if (total === 0) return null;
+  const boyPct = Math.round((boys / total) * 100);
+  const girlPct = 100 - boyPct;
+  return (
+    <div className="flex flex-col items-center gap-4">
+      <div
+        className="h-32 w-32 rounded-full"
+        style={{
+          background: `conic-gradient(#93c5fd 0% ${boyPct}%, #f9a8d4 ${boyPct}% 100%)`,
+        }}
+      />
+      <div className="flex gap-6 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="inline-block h-3 w-3 rounded-full bg-blue-300" />
+          <span className="font-medium text-blue-700">Garçon</span>
+          <span className="text-muted-foreground">{boyPct}%</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-block h-3 w-3 rounded-full bg-pink-300" />
+          <span className="font-medium text-pink-700">Fille</span>
+          <span className="text-muted-foreground">{girlPct}%</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TendanceTab({ pronostics }: { pronostics: IPronostic[] }) {
+  const boys = pronostics.filter((p) => p.gender === 'boy').length;
+  const girls = pronostics.filter((p) => p.gender === 'girl').length;
+
+  const medianWeight = median(pronostics.map((p) => p.weightGrams));
+  const medianHeight = median(pronostics.map((p) => p.heightCm));
+  const medianBirthDate = medianDate(pronostics.map((p) => p.birthDate));
+
+  const nameCounts: Record<string, number> = {};
+  for (const p of pronostics) {
+    const name = p.firstName.trim().toLowerCase();
+    nameCounts[name] = (nameCounts[name] ?? 0) + 1;
+  }
+  const popularNames = Object.entries(nameCounts)
+    .filter(([, count]) => count >= 2)
+    .sort(([, a], [, b]) => b - a)
+    .map(([name, count]) => ({
+      display: pronostics.find((p) => p.firstName.trim().toLowerCase() === name)!.firstName,
+      count,
+    }));
+
+  if (pronostics.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-16 text-center">
+        <Sparkles className="h-12 w-12 text-muted-foreground/30" />
+        <p className="text-muted-foreground">Pas encore assez de pronostics.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Sexe */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Sexe du bébé</CardTitle>
+          <CardDescription>
+            {boys} garçon{boys > 1 ? 's' : ''} · {girls} fille{girls > 1 ? 's' : ''}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center py-2">
+          <GenderPieChart boys={boys} girls={girls} />
+        </CardContent>
+      </Card>
+
+      {/* Médianes */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Valeurs médianes</CardTitle>
+          <CardDescription>Basées sur {pronostics.length} pronostic{pronostics.length > 1 ? 's' : ''}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="space-y-1">
+              <Calendar className="mx-auto h-5 w-5 text-muted-foreground" />
+              <p className="text-lg font-semibold">{medianBirthDate}</p>
+              <p className="text-xs text-muted-foreground">Date de naissance</p>
+            </div>
+            <div className="space-y-1">
+              <Scale className="mx-auto h-5 w-5 text-muted-foreground" />
+              <p className="text-lg font-semibold">{(medianWeight / 1000).toFixed(2)} kg</p>
+              <p className="text-xs text-muted-foreground">Poids</p>
+            </div>
+            <div className="space-y-1">
+              <Ruler className="mx-auto h-5 w-5 text-muted-foreground" />
+              <p className="text-lg font-semibold">{medianHeight} cm</p>
+              <p className="text-xs text-muted-foreground">Taille</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Prénoms populaires */}
+      {popularNames.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Prénoms populaires</CardTitle>
+            <CardDescription>Proposés par au moins 2 participants</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {popularNames.map(({ display, count }) => (
+                <div key={display} className="flex items-center justify-between">
+                  <span className="font-medium">{display}</span>
+                  <Badge variant="secondary">{count} vote{count > 1 ? 's' : ''}</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
 function ScoreBar({ score, max = MAX_SCORE }: { score: number; max?: number }) {
   const pct = Math.round((score / max) * 100);
   return (
@@ -118,6 +259,7 @@ export default function PronosticsPage() {
   const [openPronostic, setOpenPronostic] = useState(false);
   const [editingPronostic, setEditingPronostic] = useState<IPronostic | null>(null);
   const [openReveal, setOpenReveal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'tendance' | 'pronos'>('tendance');
 
   const {
     register,
@@ -212,11 +354,22 @@ export default function PronosticsPage() {
     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   });
 
+  const showTabs = userHasPronostic || isProjectOwner;
+
   if (!currentProject) {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
         <Flower2 className="h-12 w-12 text-muted-foreground/30" />
         <p className="text-muted-foreground">Aucun projet sélectionné.</p>
+      </div>
+    );
+  }
+
+  if (!isProjectOwner && !currentProject.pronosticsEnabled) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-16 text-center">
+        <Sparkles className="h-12 w-12 text-muted-foreground/30" />
+        <p className="text-muted-foreground">La section pronostics est désactivée par l'administrateur.</p>
       </div>
     );
   }
@@ -293,92 +446,92 @@ export default function PronosticsPage() {
           )}
 
           <Dialog open={openPronostic} onOpenChange={(open) => { if (!open) closePronosticDialog(); else setOpenPronostic(true); }}>
-              {!birthResult && !isProjectOwner && !userHasPronostic && (
-                <DialogTrigger asChild>
-                  <Button className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    Mon pronostic
-                  </Button>
-                </DialogTrigger>
-              )}
-              <DialogContent
-                className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
-                onOpenAutoFocus={(e) => e.preventDefault()}
-              >
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingPronostic ? 'Modifier mon pronostic' : 'Soumettre mon pronostic'}
-                  </DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit(onSubmitPronostic)} className="space-y-4">
-                  {currentProject.hint && (
-                    <div className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                      <span className="font-semibold">Indice :</span> {currentProject.hint}
-                    </div>
+            {!birthResult && !isProjectOwner && !userHasPronostic && (
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Mon pronostic
+                </Button>
+              </DialogTrigger>
+            )}
+            <DialogContent
+              className="max-h-[90vh] overflow-y-auto sm:max-w-lg"
+              onOpenAutoFocus={(e) => e.preventDefault()}
+            >
+              <DialogHeader>
+                <DialogTitle>
+                  {editingPronostic ? 'Modifier mon pronostic' : 'Soumettre mon pronostic'}
+                </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit(onSubmitPronostic)} className="space-y-4">
+                {currentProject.hint && (
+                  <div className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                    <span className="font-semibold">Indice :</span> {currentProject.hint}
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label>Sexe du bébé</Label>
+                  <Select
+                    value={watch('gender') || undefined}
+                    onValueChange={(v) => setValue('gender', v as PronosticFormData['gender'])}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Votre pronostic..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="boy">Garçon</SelectItem>
+                      <SelectItem value="girl">Fille</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.gender && (
+                    <p className="text-xs text-destructive">{errors.gender.message}</p>
                   )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Prénom proposé</Label>
+                  <Input placeholder="Ex: Emma, Lucas..." {...register('firstName')} />
+                  {errors.firstName && (
+                    <p className="text-xs text-destructive">{errors.firstName.message}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Date de naissance</Label>
+                  <Input type="date" {...register('birthDate')} />
+                  {errors.birthDate && (
+                    <p className="text-xs text-destructive">{errors.birthDate.message}</p>
+                  )}
+                  {currentProject.termDate && (
+                    <p className="text-xs text-teal-700">
+                      Date de terme : {new Date(currentProject.termDate).toLocaleDateString('fr-FR')}
+                    </p>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Sexe du bébé</Label>
-                    <Select
-                      value={watch('gender') || undefined}
-                      onValueChange={(v) => setValue('gender', v as PronosticFormData['gender'])}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Votre pronostic..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="boy">Garçon</SelectItem>
-                        <SelectItem value="girl">Fille</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.gender && (
-                      <p className="text-xs text-destructive">{errors.gender.message}</p>
+                    <Label>Poids (grammes)</Label>
+                    <Input type="number" placeholder="3200" {...register('weightGrams')} />
+                    {errors.weightGrams && (
+                      <p className="text-xs text-destructive">{errors.weightGrams.message}</p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label>Prénom proposé</Label>
-                    <Input placeholder="Ex: Emma, Lucas..." {...register('firstName')} />
-                    {errors.firstName && (
-                      <p className="text-xs text-destructive">{errors.firstName.message}</p>
+                    <Label>Taille (cm)</Label>
+                    <Input type="number" placeholder="50" {...register('heightCm')} />
+                    {errors.heightCm && (
+                      <p className="text-xs text-destructive">{errors.heightCm.message}</p>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label>Date de naissance</Label>
-                    <Input type="date" {...register('birthDate')} />
-                    {errors.birthDate && (
-                      <p className="text-xs text-destructive">{errors.birthDate.message}</p>
-                    )}
-                    {currentProject.termDate && (
-                      <p className="text-xs text-teal-700">
-                        Date de terme : {new Date(currentProject.termDate).toLocaleDateString('fr-FR')}
-                      </p>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Poids (grammes)</Label>
-                      <Input type="number" placeholder="3200" {...register('weightGrams')} />
-                      {errors.weightGrams && (
-                        <p className="text-xs text-destructive">{errors.weightGrams.message}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Taille (cm)</Label>
-                      <Input type="number" placeholder="50" {...register('heightCm')} />
-                      {errors.heightCm && (
-                        <p className="text-xs text-destructive">{errors.heightCm.message}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Message (optionnel)</Label>
-                    <Textarea placeholder="Un petit mot pour les parents..." {...register('message')} />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? 'Envoi...' : editingPronostic ? 'Enregistrer les modifications' : 'Soumettre mon pronostic'}
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
+                </div>
+                <div className="space-y-2">
+                  <Label>Message (optionnel)</Label>
+                  <Textarea placeholder="Un petit mot pour les parents..." {...register('message')} />
+                </div>
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? 'Envoi...' : editingPronostic ? 'Enregistrer les modifications' : 'Soumettre mon pronostic'}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -401,114 +554,143 @@ export default function PronosticsPage() {
         <div className="flex justify-center py-12">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
-      ) : sortedPronostics.length === 0 ? (
+      ) : !showTabs ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <Sparkles className="h-12 w-12 text-muted-foreground/30" />
-          <p className="text-muted-foreground">Aucun pronostic pour l'instant. Soyez le premier !</p>
+          <p className="text-muted-foreground">Soumettez votre pronostic pour voir ceux des autres !</p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sortedPronostics.map((p) => {
-            const isWinner = winner?.id === p.id;
-            const gender = genderLabels[p.gender] ?? genderLabels.surprise;
-            return (
-              <Card
-                key={p.id}
-                className={isWinner ? 'border-2 border-yellow-400 bg-yellow-50/50 shadow-md' : ''}
+        <div className="space-y-4">
+          {/* Onglets */}
+          <div className="flex border-b">
+            {(['tendance', 'pronos'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  'px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px',
+                  activeTab === tab
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground',
+                )}
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      {isWinner && <Crown className="h-5 w-5 shrink-0 text-yellow-500" />}
-                      <User className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <CardTitle className="text-base">{p.authorName}</CardTitle>
-                    </div>
-                    <Badge className={gender.class}>{gender.label}</Badge>
-                  </div>
-                  <CardDescription>
-                    Prénom : <span className="font-medium text-foreground">{p.firstName}</span>
-                  </CardDescription>
-                  {isWinner && (
-                    <div className="flex items-center gap-1.5 text-sm font-semibold text-yellow-700">
-                      <Trophy className="h-4 w-4" />
-                      Gagnant !
-                    </div>
-                  )}
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span>{new Date(p.birthDate).toLocaleDateString('fr-FR')}</span>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="flex items-center gap-1.5">
-                        <Scale className="h-3.5 w-3.5" />
-                        <span>{(p.weightGrams / 1000).toFixed(2)} kg</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Ruler className="h-3.5 w-3.5" />
-                        <span>{p.heightCm} cm</span>
-                      </div>
-                    </div>
-                  </div>
+                {tab === 'tendance' ? 'La tendance' : 'Les pronos'}
+              </button>
+            ))}
+          </div>
 
-                  {p.message && (
-                    <p className="rounded-md bg-muted px-3 py-2 text-sm italic">
-                      "{p.message}"
-                    </p>
-                  )}
-
-                  {birthResult && p.score !== null && p.score !== undefined && (
-                    <>
-                      <Separator />
-                      <ScoreBar score={p.score} />
-                      {p.scoreDetails && (
-                        <div className="grid grid-cols-5 gap-1 text-center text-xs">
-                          {[
-                            { label: 'Genre', val: p.scoreDetails.gender, max: 20 },
-                            { label: 'Prénom', val: p.scoreDetails.firstName, max: 30 },
-                            { label: 'Date', val: p.scoreDetails.birthDate, max: 30 },
-                            { label: 'Poids', val: p.scoreDetails.weight, max: 20 },
-                            { label: 'Taille', val: p.scoreDetails.height, max: 10 },
-                          ].map(({ label, val, max }) => (
-                            <div
-                              key={label}
-                              className={`rounded p-1 ${val === max ? 'bg-green-100 text-green-700' : val > 0 ? 'bg-blue-50 text-blue-700' : 'bg-muted text-muted-foreground'}`}
-                            >
-                              <div className="font-bold">{val}</div>
-                              <div className="truncate opacity-70">{label}</div>
-                            </div>
-                          ))}
+          {activeTab === 'tendance' ? (
+            <TendanceTab pronostics={sortedPronostics} />
+          ) : sortedPronostics.length === 0 ? (
+            <div className="flex flex-col items-center gap-4 py-16 text-center">
+              <Sparkles className="h-12 w-12 text-muted-foreground/30" />
+              <p className="text-muted-foreground">Aucun pronostic pour l'instant. Soyez le premier !</p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {sortedPronostics.map((p) => {
+                const isWinner = winner?.id === p.id;
+                const gender = genderLabels[p.gender] ?? genderLabels.surprise;
+                return (
+                  <Card
+                    key={p.id}
+                    className={isWinner ? 'border-2 border-yellow-400 bg-yellow-50/50 shadow-md' : ''}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          {isWinner && <Crown className="h-5 w-5 shrink-0 text-yellow-500" />}
+                          <User className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          <CardTitle className="text-base">{p.authorName}</CardTitle>
+                        </div>
+                        <Badge className={gender.class}>{gender.label}</Badge>
+                      </div>
+                      <CardDescription>
+                        Prénom : <span className="font-medium text-foreground">{p.firstName}</span>
+                      </CardDescription>
+                      {isWinner && (
+                        <div className="flex items-center gap-1.5 text-sm font-semibold text-yellow-700">
+                          <Trophy className="h-4 w-4" />
+                          Gagnant !
                         </div>
                       )}
-                    </>
-                  )}
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-3.5 w-3.5" />
+                          <span>{new Date(p.birthDate).toLocaleDateString('fr-FR')}</span>
+                        </div>
+                        <div className="flex gap-4">
+                          <div className="flex items-center gap-1.5">
+                            <Scale className="h-3.5 w-3.5" />
+                            <span>{(p.weightGrams / 1000).toFixed(2)} kg</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Ruler className="h-3.5 w-3.5" />
+                            <span>{p.heightCm} cm</span>
+                          </div>
+                        </div>
+                      </div>
 
-                  {!birthResult && p.userId === user?.id && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full gap-2"
-                      onClick={() => openEditDialog(p)}
-                    >
-                      Modifier
-                    </Button>
-                  )}
-                  {isProjectOwner && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(p.id)}
-                    >
-                      Supprimer
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+                      {p.message && (
+                        <p className="rounded-md bg-muted px-3 py-2 text-sm italic">
+                          "{p.message}"
+                        </p>
+                      )}
+
+                      {birthResult && p.score !== null && p.score !== undefined && (
+                        <>
+                          <Separator />
+                          <ScoreBar score={p.score} />
+                          {p.scoreDetails && (
+                            <div className="grid grid-cols-5 gap-1 text-center text-xs">
+                              {[
+                                { label: 'Genre', val: p.scoreDetails.gender, max: 20 },
+                                { label: 'Prénom', val: p.scoreDetails.firstName, max: 30 },
+                                { label: 'Date', val: p.scoreDetails.birthDate, max: 30 },
+                                { label: 'Poids', val: p.scoreDetails.weight, max: 20 },
+                                { label: 'Taille', val: p.scoreDetails.height, max: 10 },
+                              ].map(({ label, val, max }) => (
+                                <div
+                                  key={label}
+                                  className={`rounded p-1 ${val === max ? 'bg-green-100 text-green-700' : val > 0 ? 'bg-blue-50 text-blue-700' : 'bg-muted text-muted-foreground'}`}
+                                >
+                                  <div className="font-bold">{val}</div>
+                                  <div className="truncate opacity-70">{label}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {!birthResult && p.userId === user?.id && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full gap-2"
+                          onClick={() => openEditDialog(p)}
+                        >
+                          Modifier
+                        </Button>
+                      )}
+                      {isProjectOwner && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full text-destructive hover:text-destructive"
+                          onClick={() => handleDelete(p.id)}
+                        >
+                          Supprimer
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
