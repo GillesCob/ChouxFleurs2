@@ -507,6 +507,14 @@ export default function PronosticsPage() {
     setOpenReveal(true);
   };
 
+  if (projectsLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
   if (!currentProject) {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
