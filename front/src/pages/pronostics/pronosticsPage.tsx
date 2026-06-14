@@ -379,11 +379,12 @@ function ScoreDetailPopup({ pronostic, field, birthResult, onClose }: IScoreDeta
 export default function PronosticsPage() {
   const user = useAuthStore((s) => s.user);
   const { currentProjectId } = useProjectStore();
-  const { data: projects = [] } = useProjectsQuery();
+  const { data: projects = [], isLoading: projectsLoading } = useProjectsQuery();
   const currentProject = projects.find((p) => p.id === currentProjectId) ?? projects[0] ?? null;
   const isProjectOwner = !!(user && currentProject && currentProject.owner.id === user.id);
 
-  const { data: pronostics = [], isLoading } = usePronosticsQuery(currentProject?.id ?? null);
+  const { data: pronostics = [], isLoading: pronosticsLoading } = usePronosticsQuery(currentProject?.id ?? null);
+  const isLoading = projectsLoading || pronosticsLoading;
   const userHasPronostic = pronostics.some((p) => p.userId === user?.id);
   const createPronosticMutation = useCreatePronosticMutation(currentProject?.id ?? null);
   const updatePronosticMutation = useUpdatePronosticMutation(currentProject?.id ?? null);
