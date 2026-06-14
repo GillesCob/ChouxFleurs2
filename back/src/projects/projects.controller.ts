@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -50,6 +51,15 @@ export class ProjectsController {
     @CurrentUser() user: { id: number },
   ) {
     return this.projectsService.update(id, dto, user.id);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  deleteProject(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: { id: number },
+  ) {
+    return this.projectsService.deleteProject(id, user.id);
   }
 
   @Post(':id/result')

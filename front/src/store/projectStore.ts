@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 interface IProjectStore {
   currentProjectId: number | null;
-  setCurrentProjectId: (id: number) => void;
+  setCurrentProjectId: (id: number | null) => void;
 }
 
 export const useProjectStore = create<IProjectStore>((set) => ({
@@ -11,7 +11,11 @@ export const useProjectStore = create<IProjectStore>((set) => ({
     return stored ? parseInt(stored, 10) : null;
   })(),
   setCurrentProjectId: (id) => {
-    localStorage.setItem('currentProjectId', String(id));
+    if (id === null) {
+      localStorage.removeItem('currentProjectId');
+    } else {
+      localStorage.setItem('currentProjectId', String(id));
+    }
     set({ currentProjectId: id });
   },
 }));

@@ -9,6 +9,7 @@ import { useUpdateMeMutation } from '@/hooks/useUpdateMeMutation';
 import { useDeleteMeMutation } from '@/hooks/useDeleteMeMutation';
 import { useUpdateProjectMutation } from '@/hooks/useUpdateProjectMutation';
 import { useCreateProjectMutation } from '@/hooks/useCreateProjectMutation';
+import { useDeleteProjectMutation } from '@/hooks/useDeleteProjectMutation';
 import { toast } from '@/hooks/use-toast';
 import {
   Card,
@@ -170,6 +171,8 @@ export default function AdminPage() {
   const [openDelete, setOpenDelete] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
   const [openProjectId, setOpenProjectId] = useState<number | null>(null);
+  const [deletingProjectId, setDeletingProjectId] = useState<number | null>(null);
+  const deleteProjectMutation = useDeleteProjectMutation();
   const projectRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   useEffect(() => {
@@ -250,6 +253,22 @@ export default function AdminPage() {
     }
   };
 
+  const onDeleteProject = async () => {
+    if (!deletingProjectId) return;
+    try {
+      await deleteProjectMutation.mutateAsync(deletingProjectId);
+      toast({ title: 'Projet supprimé' });
+      setDeletingProjectId(null);
+      setOpenProjectId(null);
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: err instanceof Error ? err.message : 'Impossible de supprimer le projet',
+      });
+    }
+  };
+
   const onCreateProject = async (data: ProjectNameForm) => {
     try {
       const project = await createProjectMutation.mutateAsync(data.name);
@@ -284,6 +303,34 @@ export default function AdminPage() {
       {ownedProjects.length > 0 ? (
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">{projectSectionTitle}</h2>
+
+          {/* Dialog de suppression — partagé entre tous les projets */}
+          <Dialog
+            open={deletingProjectId !== null}
+            onOpenChange={(open) => { if (!open) setDeletingProjectId(null); }}
+          >
+            <DialogContent className="top-4 translate-y-0 sm:top-[50%] sm:-translate-y-1/2 sm:max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Supprimer le projet</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground">
+                Cette action est irréversible. Tous les pronostics, résultats et articles de la liste de naissance seront définitivement supprimés.
+              </p>
+              <div className="flex flex-col gap-2 pt-2">
+                <Button
+                  variant="destructive"
+                  onClick={onDeleteProject}
+                  disabled={deleteProjectMutation.isPending}
+                  className="w-full"
+                >
+                  {deleteProjectMutation.isPending ? 'Suppression...' : 'Oui, supprimer ce projet'}
+                </Button>
+                <Button variant="ghost" onClick={() => setDeletingProjectId(null)} className="w-full">
+                  Annuler
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Dialog de renommage — partagé entre tous les projets */}
           <Dialog
@@ -378,6 +425,17 @@ export default function AdminPage() {
                             )}
                           </CardContent>
                         </Card>
+                        <div className="pt-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => setDeletingProjectId(project.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Supprimer ce projet
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -439,6 +497,17 @@ export default function AdminPage() {
                     )}
                   </CardContent>
                 </Card>
+                <div className="pt-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => setDeletingProjectId(project.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Supprimer ce projet
+                  </Button>
+                </div>
               </div>
             ))
           )}

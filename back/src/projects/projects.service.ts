@@ -90,6 +90,13 @@ export class ProjectsService {
     return count > 0;
   }
 
+  async deleteProject(projectId: number, userId: number) {
+    const isOwner = await this.isProjectOwner(projectId, userId);
+    if (!isOwner)
+      throw new ForbiddenException('Seul le créateur du projet peut le supprimer');
+    await this.prisma.project.delete({ where: { id: projectId } });
+  }
+
   async revealResult(projectId: number, dto: RevealResultDto, userId: number) {
     const isOwner = await this.isProjectOwner(projectId, userId);
     if (!isOwner)
