@@ -163,7 +163,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
             pr-0 / p-0 : annule le p-6 par défaut de shadcn */}
         <SheetContent side='left' className='flex w-[280px] max-w-[85vw] flex-col overflow-hidden p-0'>
           {/* pr-12 : réserve la place pour le bouton ✕ positionné en absolute right-4 top-4 */}
-          <SheetHeader className='shrink-0 border-b px-4 pb-4 pt-4 pr-12 text-left'>
+          <SheetHeader
+            className='shrink-0 border-b px-4 pb-4 pr-12 text-left'
+            style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}
+          >
             <SheetTitle className='flex items-center gap-2'>
               <img src='/Chouxfleur2noir.png' alt='ChouxFleurs' className='h-8 w-8 shrink-0' />
               ChouxFleurs
