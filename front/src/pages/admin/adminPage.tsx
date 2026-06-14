@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -170,6 +170,15 @@ export default function AdminPage() {
   const [openDelete, setOpenDelete] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
   const [openProjectId, setOpenProjectId] = useState<number | null>(null);
+  const projectRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    if (openProjectId === null) return;
+    const el = projectRefs.current[openProjectId];
+    if (!el) return;
+    const timer = setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    return () => clearTimeout(timer);
+  }, [openProjectId]);
 
   const {
     register: profileRegister,
@@ -297,7 +306,11 @@ export default function AdminPage() {
               {ownedProjects.map((project) => {
                 const isOpen = openProjectId === project.id;
                 return (
-                  <div key={project.id} className="overflow-hidden rounded-lg border">
+                  <div
+                    key={project.id}
+                    ref={(el) => { projectRefs.current[project.id] = el; }}
+                    className="scroll-mt-24 overflow-hidden rounded-lg border"
+                  >
                     <button
                       type="button"
                       onClick={() => setOpenProjectId(isOpen ? null : project.id)}

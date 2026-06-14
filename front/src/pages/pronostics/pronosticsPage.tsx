@@ -383,7 +383,7 @@ export default function PronosticsPage() {
   const currentProject = projects.find((p) => p.id === currentProjectId) ?? projects[0] ?? null;
   const isProjectOwner = !!(user && currentProject && currentProject.owner.id === user.id);
 
-  const { data: pronostics = [], isLoading: pronosticsLoading } = usePronosticsQuery(currentProject?.id ?? null);
+  const { data: pronostics = [], isPending: pronosticsLoading } = usePronosticsQuery(currentProject?.id ?? null);
   const isLoading = projectsLoading || pronosticsLoading;
   const userHasPronostic = pronostics.some((p) => p.userId === user?.id);
   const createPronosticMutation = useCreatePronosticMutation(currentProject?.id ?? null);
