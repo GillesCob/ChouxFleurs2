@@ -309,7 +309,7 @@ export default function AdminPage() {
                   <div
                     key={project.id}
                     ref={(el) => { projectRefs.current[project.id] = el; }}
-                    className="scroll-mt-32 overflow-hidden rounded-lg border"
+                    className="scroll-mt-[70px] overflow-hidden rounded-lg border"
                   >
                     <button
                       type="button"
