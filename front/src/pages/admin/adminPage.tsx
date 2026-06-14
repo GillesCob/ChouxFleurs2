@@ -155,7 +155,7 @@ function ProjectVisibilityToggles({ project }: { project: IProject }) {
 
 export default function AdminPage() {
   const user = useAuthStore((s) => s.user);
-  const { data: projects = [] } = useProjectsQuery();
+  const { data: projects = [], isLoading: projectsLoading } = useProjectsQuery();
   const navigate = useNavigate();
 
   const ownedProjects = projects.filter((p) => p.owner.id === user?.id);
@@ -264,6 +264,14 @@ export default function AdminPage() {
       });
     }
   };
+
+  if (projectsLoading) {
+    return (
+      <div className="flex justify-center py-24">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
