@@ -56,7 +56,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const closeMenu = () => setMobileMenuOpen(false);
 
   const visibleNavItems = navItems.filter(({ to }) => {
-    if (isProjectOwner || !currentProject) return true;
+    if (!currentProject) return true;
     if (to === '/pronostics' && !currentProject.pronosticsEnabled) return false;
     if (to === '/liste-naissance' && !currentProject.birthListEnabled) return false;
     return true;

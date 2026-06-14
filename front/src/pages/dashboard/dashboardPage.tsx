@@ -69,8 +69,8 @@ export default function DashboardPage() {
   const winner = currentProject?.winner ?? null;
   const hasResult = !!currentProject?.birthResult;
 
-  const showPronostics = isProjectOwner || !currentProject || (currentProject.pronosticsEnabled ?? true);
-  const showBirthList = isProjectOwner || !currentProject || (currentProject.birthListEnabled ?? true);
+  const showPronostics = !currentProject || (currentProject.pronosticsEnabled ?? true);
+  const showBirthList = !currentProject || (currentProject.birthListEnabled ?? true);
 
   if (isLoading) {
     return (
