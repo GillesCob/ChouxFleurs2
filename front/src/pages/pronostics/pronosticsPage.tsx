@@ -184,17 +184,14 @@ function TendanceTab({ pronostics }: { pronostics: IPronostic[] }) {
             <div className="space-y-1">
               <Calendar className="mx-auto h-5 w-5 text-muted-foreground" />
               <p className="text-sm font-semibold tabular-nums">{medianBirthDate}</p>
-              <p className="text-xs text-muted-foreground">Date de naissance</p>
             </div>
             <div className="space-y-1">
               <Scale className="mx-auto h-5 w-5 text-muted-foreground" />
               <p className="text-sm font-semibold tabular-nums">{(medianWeight / 1000).toFixed(2)} kg</p>
-              <p className="text-xs text-muted-foreground">Poids</p>
             </div>
             <div className="space-y-1">
               <Ruler className="mx-auto h-5 w-5 text-muted-foreground" />
               <p className="text-sm font-semibold tabular-nums">{medianHeight} cm</p>
-              <p className="text-xs text-muted-foreground">Taille</p>
             </div>
           </div>
         </CardContent>
