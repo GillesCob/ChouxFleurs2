@@ -8,6 +8,10 @@ export interface ScoreDetails {
 
 export const MAX_SCORE = 110;
 
+function normalizeStr(s: string): string {
+  return s.trim().normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
 function toUTCDay(d: Date | string): number {
   const date = new Date(d);
   return Math.floor(
@@ -43,11 +47,8 @@ export function calculateScore(
   // Genre : 20 pts
   if (pronostic.gender === result.gender) details.gender = 20;
 
-  // Prénom : 30 pts (insensible à la casse)
-  if (
-    pronostic.firstName.trim().toLowerCase() ===
-    result.firstName.trim().toLowerCase()
-  )
+  // Prénom : 30 pts (insensible à la casse et aux accents)
+  if (normalizeStr(pronostic.firstName) === normalizeStr(result.firstName))
     details.firstName = 30;
 
   // Date de naissance : max 30 pts
