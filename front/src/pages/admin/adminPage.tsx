@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import type { IProject } from '@/types';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, Pencil, Plus, Trash2 } from 'lucide-react';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Au moins 2 caractères'),
@@ -169,6 +169,7 @@ export default function AdminPage() {
   const [renamingProjectId, setRenamingProjectId] = useState<number | null>(null);
   const [openDelete, setOpenDelete] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
+  const [openProjectId, setOpenProjectId] = useState<number | null>(null);
 
   const {
     register: profileRegister,
@@ -291,73 +292,135 @@ export default function AdminPage() {
             </DialogContent>
           </Dialog>
 
-          {ownedProjects.map((project) => (
-            <div key={project.id} className="space-y-3">
-              <div className="flex items-center gap-3">
-                <h3 className="font-semibold text-base">{project.name}</h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => openRenameFor(project)}
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                  Renommer
-                </Button>
-              </div>
-
-              {/* Indices du projet */}
-              <Card>
-                <CardHeader>
-                  <CardDescription>
-                    Indices affichés aux participants avant qu'ils ne remplissent leur pronostic.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ProjectHintsForm project={project} />
-                </CardContent>
-              </Card>
-
-              {/* Visibilité des sections */}
-              <Card>
-                <CardHeader>
-                  <CardDescription>
-                    Activez ou désactivez les sections visibles par les participants.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ProjectVisibilityToggles project={project} />
-                </CardContent>
-              </Card>
-
-              {/* Membres */}
-              <Card>
-                <CardHeader>
-                  <CardDescription>
-                    Membres ayant rejoint ce projet via le lien d'invitation.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  {project.members && project.members.length > 0 ? (
-                    <div className="divide-y">
-                      {project.members.map((m) => (
-                        <div key={m.id} className="px-6 py-3">
-                          <p className="font-medium">{m.user.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Rejoint le {new Date(m.joinedAt).toLocaleDateString('fr-FR')}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="px-6 py-4 text-sm text-muted-foreground">
-                      Aucun membre pour l'instant. Partagez votre lien d'invitation !
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+          {ownedProjects.length > 1 ? (
+            <div className="space-y-2">
+              {ownedProjects.map((project) => {
+                const isOpen = openProjectId === project.id;
+                return (
+                  <div key={project.id} className="overflow-hidden rounded-lg border">
+                    <button
+                      type="button"
+                      onClick={() => setOpenProjectId(isOpen ? null : project.id)}
+                      className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-muted/50"
+                    >
+                      <span className="font-semibold">{project.name}</span>
+                      <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200${isOpen ? ' rotate-180' : ''}`} />
+                    </button>
+                    {isOpen && (
+                      <div className="space-y-3 border-t px-4 py-4">
+                        <Button variant="outline" size="sm" className="gap-2" onClick={() => openRenameFor(project)}>
+                          <Pencil className="h-3.5 w-3.5" />
+                          Renommer
+                        </Button>
+                        <Card>
+                          <CardHeader>
+                            <CardDescription>
+                              Indices affichés aux participants avant qu'ils ne remplissent leur pronostic.
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <ProjectHintsForm project={project} />
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardHeader>
+                            <CardDescription>
+                              Activez ou désactivez les sections visibles par les participants.
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <ProjectVisibilityToggles project={project} />
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardHeader>
+                            <CardDescription>
+                              Membres ayant rejoint ce projet via le lien d'invitation.
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="p-0">
+                            {project.members && project.members.length > 0 ? (
+                              <div className="divide-y">
+                                {project.members.map((m) => (
+                                  <div key={m.id} className="px-6 py-3">
+                                    <p className="font-medium">{m.user.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Rejoint le {new Date(m.joinedAt).toLocaleDateString('fr-FR')}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="px-6 py-4 text-sm text-muted-foreground">
+                                Aucun membre pour l'instant. Partagez votre lien d'invitation !
+                              </p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          ))}
+          ) : (
+            ownedProjects.map((project) => (
+              <div key={project.id} className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <h3 className="font-semibold text-base">{project.name}</h3>
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => openRenameFor(project)}>
+                    <Pencil className="h-3.5 w-3.5" />
+                    Renommer
+                  </Button>
+                </div>
+                <Card>
+                  <CardHeader>
+                    <CardDescription>
+                      Indices affichés aux participants avant qu'ils ne remplissent leur pronostic.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ProjectHintsForm project={project} />
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardDescription>
+                      Activez ou désactivez les sections visibles par les participants.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ProjectVisibilityToggles project={project} />
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardDescription>
+                      Membres ayant rejoint ce projet via le lien d'invitation.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {project.members && project.members.length > 0 ? (
+                      <div className="divide-y">
+                        {project.members.map((m) => (
+                          <div key={m.id} className="px-6 py-3">
+                            <p className="font-medium">{m.user.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Rejoint le {new Date(m.joinedAt).toLocaleDateString('fr-FR')}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="px-6 py-4 text-sm text-muted-foreground">
+                        Aucun membre pour l'instant. Partagez votre lien d'invitation !
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            ))
+          )}
         </div>
       ) : (
         /* Aucun projet possédé — proposer la création */
@@ -377,7 +440,7 @@ export default function AdminPage() {
                     Nouveau projet
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-sm">
+                <DialogContent className="top-4 translate-y-0 sm:top-[50%] sm:-translate-y-1/2 sm:max-w-sm">
                   <DialogHeader>
                     <DialogTitle>Créer un nouveau projet bébé</DialogTitle>
                   </DialogHeader>

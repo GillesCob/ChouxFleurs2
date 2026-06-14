@@ -82,7 +82,7 @@ export default function DashboardPage() {
 
   return (
     <Dialog open={openCreate} onOpenChange={setOpenCreate}>
-      <DialogContent className='sm:max-w-sm'>
+      <DialogContent className='top-4 translate-y-0 sm:top-[50%] sm:-translate-y-1/2 sm:max-w-sm'>
         <DialogHeader>
           <DialogTitle>Créer un nouveau projet bébé</DialogTitle>
         </DialogHeader>
