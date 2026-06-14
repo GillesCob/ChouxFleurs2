@@ -439,31 +439,27 @@ export default function AdminPage() {
                             )}
                           </CardContent>
                         </Card>
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          <Button size="sm" className="gap-2" onClick={() => copyInviteLink(project)}>
-                            <Link2 className="h-3.5 w-3.5" />
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <Button size="sm" className="gap-1.5 text-xs" onClick={() => copyInviteLink(project)}>
+                            <Link2 className="h-3 w-3 shrink-0" />
                             Lien d'invitation
                           </Button>
-                          {project.owner.id === user?.id && (
-                            <Button size="sm" className="gap-2" onClick={() => copyAdminLink(project)}>
-                              <UserPlus className="h-3.5 w-3.5" />
-                              Ajouter Admin
-                            </Button>
-                          )}
+                          <Button size="sm" className="gap-1.5 text-xs" onClick={() => copyAdminLink(project)}>
+                            <UserPlus className="h-3 w-3 shrink-0" />
+                            Ajouter Admin
+                          </Button>
                         </div>
-                        {project.owner.id === user?.id && (
-                          <div className="pt-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                              onClick={() => setDeletingProjectId(project.id)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                              Supprimer ce projet
-                            </Button>
-                          </div>
-                        )}
+                        <div className="pt-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => setDeletingProjectId(project.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Supprimer ce projet
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -525,31 +521,27 @@ export default function AdminPage() {
                     )}
                   </CardContent>
                 </Card>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  <Button size="sm" className="gap-2" onClick={() => copyInviteLink(project)}>
-                    <Link2 className="h-3.5 w-3.5" />
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <Button size="sm" className="gap-1.5 text-xs" onClick={() => copyInviteLink(project)}>
+                    <Link2 className="h-3 w-3 shrink-0" />
                     Lien d'invitation
                   </Button>
-                  {project.owner.id === user?.id && (
-                    <Button size="sm" className="gap-2" onClick={() => copyAdminLink(project)}>
-                      <UserPlus className="h-3.5 w-3.5" />
-                      Ajouter Admin
-                    </Button>
-                  )}
+                  <Button size="sm" className="gap-1.5 text-xs" onClick={() => copyAdminLink(project)}>
+                    <UserPlus className="h-3 w-3 shrink-0" />
+                    Ajouter Admin
+                  </Button>
                 </div>
-                {project.owner.id === user?.id && (
-                  <div className="pt-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => setDeletingProjectId(project.id)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Supprimer ce projet
-                    </Button>
-                  </div>
-                )}
+                <div className="pt-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => setDeletingProjectId(project.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Supprimer ce projet
+                  </Button>
+                </div>
               </div>
             ))
           )}
