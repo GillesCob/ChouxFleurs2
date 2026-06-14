@@ -61,12 +61,14 @@ export interface IProjectMemberInfo {
   id: number;
   user: { id: number; name: string; email: string };
   joinedAt: string;
+  isAdmin: boolean;
 }
 
 export interface IProject {
   id: number;
   name: string;
   inviteToken: string;
+  adminInviteToken: string;
   owner: { id: number; name: string };
   birthResult: IBirthResult | null;
   winner: IPronostic | null;

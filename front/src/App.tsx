@@ -11,6 +11,7 @@ import PronosticsPage from '@/pages/pronostics/pronosticsPage';
 import ListeNaissancePage from '@/pages/liste-naissance/listeNaissancePage';
 import AdminPage from '@/pages/admin/adminPage';
 import InvitePage from '@/pages/invite/invitePage';
+import AdminInvitePage from '@/pages/invite/adminInvitePage';
 
 export default function App() {
   useInitAuth();
@@ -21,6 +22,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/invite/:token" element={<InvitePage />} />
+        <Route path="/admin-invite/:token" element={<AdminInvitePage />} />
 
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />

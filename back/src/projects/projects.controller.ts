@@ -37,10 +37,21 @@ export class ProjectsController {
     return this.projectsService.getByInviteToken(token);
   }
 
+  @Get('admin-invite/:token')
+  getByAdminToken(@Param('token') token: string) {
+    return this.projectsService.getByAdminInviteToken(token);
+  }
+
   @Post('join/:token')
   @UseGuards(JwtAuthGuard)
   joinByToken(@Param('token') token: string, @CurrentUser() user: { id: number }) {
     return this.projectsService.joinByToken(token, user);
+  }
+
+  @Post('join-admin/:token')
+  @UseGuards(JwtAuthGuard)
+  joinByAdminToken(@Param('token') token: string, @CurrentUser() user: { id: number }) {
+    return this.projectsService.joinByAdminToken(token, user);
   }
 
   @Patch(':id')

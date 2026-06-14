@@ -64,8 +64,32 @@ export class ProjectsService {
     return project;
   }
 
+  async getByAdminInviteToken(token: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { adminInviteToken: token },
+      include: { owner: { select: { id: true, name: true } } },
+    });
+    if (!project) throw new NotFoundException('Lien invalide ou projet introuvable');
+    return { id: project.id, name: project.name, owner: { name: project.owner.name } };
+  }
+
+  async joinByAdminToken(token: string, user: { id: number }) {
+    const project = await this.prisma.project.findUnique({
+      where: { adminInviteToken: token },
+    });
+    if (!project) throw new NotFoundException('Lien invalide');
+    if (project.ownerId === user.id) return project;
+
+    await this.prisma.projectMember.upsert({
+      where: { projectId_userId: { projectId: project.id, userId: user.id } },
+      create: { projectId: project.id, userId: user.id, isAdmin: true },
+      update: { isAdmin: true },
+    });
+    return project;
+  }
+
   async update(id: number, dto: UpdateProjectDto, userId: number) {
-    const isOwner = await this.isProjectOwner(id, userId);
+    const isOwner = await this.isProjectOwnerOrAdmin(id, userId);
     if (!isOwner) throw new ForbiddenException('Seul le créateur peut modifier ce projet');
 
     const data: Record<string, unknown> = {};
@@ -90,6 +114,14 @@ export class ProjectsService {
     return count > 0;
   }
 
+  async isProjectOwnerOrAdmin(projectId: number, userId: number): Promise<boolean> {
+    if (await this.isProjectOwner(projectId, userId)) return true;
+    const member = await this.prisma.projectMember.findFirst({
+      where: { projectId, userId, isAdmin: true },
+    });
+    return !!member;
+  }
+
   async deleteProject(projectId: number, userId: number) {
     const isOwner = await this.isProjectOwner(projectId, userId);
     if (!isOwner)
@@ -98,7 +130,7 @@ export class ProjectsService {
   }
 
   async revealResult(projectId: number, dto: RevealResultDto, userId: number) {
-    const isOwner = await this.isProjectOwner(projectId, userId);
+    const isOwner = await this.isProjectOwnerOrAdmin(projectId, userId);
     if (!isOwner)
       throw new ForbiddenException('Seul le créateur du projet peut révéler les résultats');
 
@@ -141,6 +173,7 @@ export class ProjectsService {
       id: project.id,
       name: project.name,
       inviteToken: project.inviteToken,
+      adminInviteToken: project.adminInviteToken,
       owner: project.owner,
       birthResult: project.birthResult,
       members: project.members ?? [],

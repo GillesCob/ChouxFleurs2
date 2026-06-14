@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRegisterMutation } from '@/hooks/useRegisterMutation';
+import { useJoinAdminProjectMutation } from '@/hooks/useJoinAdminProjectMutation';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,15 +46,17 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get('invite') ?? undefined;
+  const adminInviteToken = searchParams.get('admin-invite') ?? undefined;
   const queryClient = useQueryClient();
   const registerMutation = useRegisterMutation();
+  const joinAdminProjectMutation = useJoinAdminProjectMutation();
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
-    resolver: zodResolver(buildSchema(!!inviteToken)),
+    resolver: zodResolver(buildSchema(!!(inviteToken ?? adminInviteToken))),
   });
 
   const onSubmit = async (data: RegisterFormData) => {
@@ -66,6 +69,15 @@ export default function RegisterPage() {
         inviteToken,
       });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      if (adminInviteToken) {
+        try {
+          await joinAdminProjectMutation.mutateAsync(adminInviteToken);
+        } catch {
+          // token invalide — on ignore
+        }
+        navigate('/admin');
+        return;
+      }
       navigate('/dashboard');
     } catch (err) {
       toast({
@@ -85,10 +97,12 @@ export default function RegisterPage() {
             <img src='/Chouxfleur2noir.png' alt='ChouxFleurs' className='h-16 w-16 object-contain' />
           </div>
           <CardTitle className='text-2xl'>
-            {inviteToken ? 'Rejoindre un projet' : 'Créer mon espace'}
+            {adminInviteToken ? 'Devenir Admin' : inviteToken ? 'Rejoindre un projet' : 'Créer mon espace'}
           </CardTitle>
           <CardDescription>
-            {inviteToken
+            {adminInviteToken
+              ? 'Créez votre compte pour accepter le rôle admin'
+              : inviteToken
               ? 'Créez votre compte pour accéder au projet'
               : 'Inscrivez-vous et créez votre projet naissance'}
           </CardDescription>
@@ -103,7 +117,7 @@ export default function RegisterPage() {
               )}
             </div>
 
-            {!inviteToken && (
+            {!inviteToken && !adminInviteToken && (
               <div className='space-y-2'>
                 <Label htmlFor='projectName'>Nom de votre projet</Label>
                 <Input
@@ -167,14 +181,16 @@ export default function RegisterPage() {
             <Button type='submit' className='w-full' disabled={isSubmitting}>
               {isSubmitting
                 ? 'Création...'
-                : inviteToken
+                : adminInviteToken
+                  ? 'Créer mon compte et devenir Admin'
+                  : inviteToken
                   ? 'Créer mon compte et rejoindre'
                   : 'Créer mon espace'}
             </Button>
             <p className='text-sm text-muted-foreground'>
               Déjà un compte ?{' '}
               <Link
-                to={inviteToken ? `/login?invite=${inviteToken}` : '/login'}
+                to={adminInviteToken ? `/login?admin-invite=${adminInviteToken}` : inviteToken ? `/login?invite=${inviteToken}` : '/login'}
                 className='text-primary hover:underline'
               >
                 Se connecter

@@ -381,7 +381,12 @@ export default function PronosticsPage() {
   const { currentProjectId } = useProjectStore();
   const { data: projects = [], isLoading: projectsLoading } = useProjectsQuery();
   const currentProject = projects.find((p) => p.id === currentProjectId) ?? projects[0] ?? null;
-  const isProjectOwner = !!(user && currentProject && currentProject.owner.id === user.id);
+  const isProjectOwner = !!(
+    user &&
+    currentProject &&
+    (currentProject.owner.id === user.id ||
+      currentProject.members?.some((m) => m.user.id === user.id && m.isAdmin))
+  );
 
   const { data: pronostics = [], isPending: pronosticsLoading } = usePronosticsQuery(currentProject?.id ?? null);
   const isLoading = projectsLoading || pronosticsLoading;

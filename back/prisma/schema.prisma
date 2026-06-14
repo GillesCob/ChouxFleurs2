@@ -38,6 +38,7 @@ model Project {
   id                 Int             @id @default(autoincrement())
   name               String          @db.VarChar(150)
   inviteToken        String          @unique @db.VarChar(36)
+  adminInviteToken   String          @unique @default(uuid()) @db.VarChar(36)
   ownerId            Int
   termDate           DateTime?       @db.Date
   hint               String?         @db.Text
@@ -55,6 +56,7 @@ model ProjectMember {
   id        Int      @id @default(autoincrement())
   projectId Int
   userId    Int
+  isAdmin   Boolean  @default(false)
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   joinedAt  DateTime @default(now())

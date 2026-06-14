@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useLoginMutation } from '@/hooks/useLoginMutation';
 import { useJoinProjectMutation } from '@/hooks/useJoinProjectMutation';
+import { useJoinAdminProjectMutation } from '@/hooks/useJoinAdminProjectMutation';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,8 +29,10 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get('invite');
+  const adminInviteToken = searchParams.get('admin-invite');
   const loginMutation = useLoginMutation();
   const joinProjectMutation = useJoinProjectMutation();
+  const joinAdminProjectMutation = useJoinAdminProjectMutation();
 
   const {
     register,
@@ -46,6 +49,15 @@ export default function LoginPage() {
         } catch {
           // déjà membre ou token invalide — on ignore
         }
+      }
+      if (adminInviteToken) {
+        try {
+          await joinAdminProjectMutation.mutateAsync(adminInviteToken);
+        } catch {
+          // déjà admin ou token invalide — on ignore
+        }
+        navigate('/admin');
+        return;
       }
       navigate('/dashboard');
     } catch (err) {
@@ -67,7 +79,9 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl">ChouxFleurs</CardTitle>
           <CardDescription>
-            {inviteToken
+            {adminInviteToken
+              ? 'Connectez-vous pour accepter le rôle admin'
+              : inviteToken
               ? 'Connectez-vous pour rejoindre le projet'
               : 'Connectez-vous à votre espace'}
           </CardDescription>
@@ -96,7 +110,7 @@ export default function LoginPage() {
             <p className="text-sm text-muted-foreground">
               Pas encore de compte ?{' '}
               <Link
-                to={inviteToken ? `/register?invite=${inviteToken}` : '/register'}
+                to={adminInviteToken ? `/register?admin-invite=${adminInviteToken}` : inviteToken ? `/register?invite=${inviteToken}` : '/register'}
                 className="text-primary hover:underline"
               >
                 S'inscrire
