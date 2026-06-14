@@ -45,6 +45,7 @@ import {
   Crown,
   Flower2,
   Lock,
+  Pencil,
   Plus,
   Ruler,
   Scale,
@@ -414,6 +415,8 @@ export default function PronosticsPage() {
     register: revealRegister,
     handleSubmit: revealHandleSubmit,
     setValue: revealSetValue,
+    reset: revealReset,
+    watch: revealWatch,
     formState: { errors: revealErrors, isSubmitting: revealSubmitting },
   } = useForm<RevealFormData>({ resolver: zodResolver(revealSchema) });
 
@@ -462,7 +465,7 @@ export default function PronosticsPage() {
     try {
       const dto: IRevealResultDto = data;
       await revealResultMutation.mutateAsync(dto);
-      toast({ title: 'Résultats révélés !', description: 'Les scores sont calculés.' });
+      toast({ title: currentProject?.birthResult ? 'Résultats modifiés !' : 'Résultats révélés !', description: 'Les scores sont calculés.' });
       setOpenReveal(false);
     } catch (err) {
       toast({
@@ -492,6 +495,19 @@ export default function PronosticsPage() {
   });
 
   const showTabs = userHasPronostic || isProjectOwner;
+
+  const openEditReveal = () => {
+    if (birthResult) {
+      revealReset({
+        gender: birthResult.gender as 'boy' | 'girl',
+        firstName: birthResult.firstName,
+        birthDate: new Date(birthResult.birthDate).toISOString().slice(0, 10),
+        weightGrams: birthResult.weightGrams,
+        heightCm: birthResult.heightCm,
+      });
+    }
+    setOpenReveal(true);
+  };
 
   if (!currentProject) {
     return (
@@ -523,63 +539,10 @@ export default function PronosticsPage() {
         </div>
         <div className="flex gap-2">
           {isProjectOwner && !birthResult && (
-            <Dialog open={openReveal} onOpenChange={setOpenReveal}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Lock className="h-4 w-4" />
-                  Révéler les résultats
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Saisir les vraies réponses</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={revealHandleSubmit(onReveal)} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Sexe</Label>
-                    <Select onValueChange={(v) => revealSetValue('gender', v as 'boy' | 'girl')}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Garçon ou Fille ?" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="boy">Garçon</SelectItem>
-                        <SelectItem value="girl">Fille</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {revealErrors.gender && (
-                      <p className="text-xs text-destructive">{revealErrors.gender.message}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Prénom</Label>
-                    <Input placeholder="Le vrai prénom" {...revealRegister('firstName')} />
-                    {revealErrors.firstName && (
-                      <p className="text-xs text-destructive">{revealErrors.firstName.message}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Date de naissance</Label>
-                    <Input type="date" {...revealRegister('birthDate')} />
-                    {revealErrors.birthDate && (
-                      <p className="text-xs text-destructive">{revealErrors.birthDate.message}</p>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Poids (g)</Label>
-                      <Input type="number" placeholder="3200" {...revealRegister('weightGrams')} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Taille (cm)</Label>
-                      <Input type="number" placeholder="50" {...revealRegister('heightCm')} />
-                    </div>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={revealSubmitting}>
-                    {revealSubmitting ? 'Calcul des scores...' : 'Révéler et calculer les scores'}
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <Button variant="outline" className="gap-2" onClick={() => setOpenReveal(true)}>
+              <Lock className="h-4 w-4" />
+              Révéler les résultats
+            </Button>
           )}
 
           <Dialog open={openPronostic} onOpenChange={(open) => { if (!open) closePronosticDialog(); else setOpenPronostic(true); }}>
@@ -674,7 +637,20 @@ export default function PronosticsPage() {
 
       {birthResult && (
         <div className="rounded-xl border border-green-200 bg-green-50 p-4">
-          <p className="mb-1 text-sm font-semibold text-green-800">Bonnes réponses</p>
+          <div className="mb-1 flex items-center justify-between">
+            <p className="text-sm font-semibold text-green-800">Bonnes réponses</p>
+            {isProjectOwner && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1.5 px-2 text-green-700 hover:bg-green-100 hover:text-green-900"
+                onClick={openEditReveal}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                Modifier
+              </Button>
+            )}
+          </div>
           <div className="flex flex-wrap gap-3 text-sm text-green-700">
             <span>Sexe : <strong>{birthResult.gender === 'boy' ? 'Garçon' : 'Fille'}</strong></span>
             <span>Prénom : <strong>{birthResult.firstName}</strong></span>
@@ -841,6 +817,69 @@ export default function PronosticsPage() {
           birthResult={birthResult}
           onClose={() => setScorePopup(null)}
         />
+      )}
+
+      {isProjectOwner && (
+        <Dialog open={openReveal} onOpenChange={setOpenReveal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {birthResult ? 'Modifier les vraies réponses' : 'Saisir les vraies réponses'}
+              </DialogTitle>
+            </DialogHeader>
+            <form onSubmit={revealHandleSubmit(onReveal)} className="space-y-4">
+              <div className="space-y-2">
+                <Label>Sexe</Label>
+                <Select
+                  value={revealWatch('gender') || undefined}
+                  onValueChange={(v) => revealSetValue('gender', v as 'boy' | 'girl')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Garçon ou Fille ?" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="boy">Garçon</SelectItem>
+                    <SelectItem value="girl">Fille</SelectItem>
+                  </SelectContent>
+                </Select>
+                {revealErrors.gender && (
+                  <p className="text-xs text-destructive">{revealErrors.gender.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Prénom</Label>
+                <Input placeholder="Le vrai prénom" {...revealRegister('firstName')} />
+                {revealErrors.firstName && (
+                  <p className="text-xs text-destructive">{revealErrors.firstName.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Date de naissance</Label>
+                <Input type="date" {...revealRegister('birthDate')} />
+                {revealErrors.birthDate && (
+                  <p className="text-xs text-destructive">{revealErrors.birthDate.message}</p>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Poids (g)</Label>
+                  <Input type="number" placeholder="3200" {...revealRegister('weightGrams')} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Taille (cm)</Label>
+                  <Input type="number" placeholder="50" {...revealRegister('heightCm')} />
+                </div>
+              </div>
+              <Button type="submit" className="w-full" disabled={revealSubmitting}>
+                {revealSubmitting
+                  ? 'Calcul des scores...'
+                  : birthResult
+                    ? 'Enregistrer et recalculer les scores'
+                    : 'Révéler et calculer les scores'}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
