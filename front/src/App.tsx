@@ -6,6 +6,8 @@ import { PublicRoute } from '@/components/layout/publicRoute';
 import { ScrollToTop } from '@/components/layout/scrollToTop';
 import LoginPage from '@/pages/auth/loginPage';
 import RegisterPage from '@/pages/auth/registerPage';
+import ForgotPasswordPage from '@/pages/auth/forgotPasswordPage';
+import ResetPasswordPage from '@/pages/auth/resetPasswordPage';
 import DashboardPage from '@/pages/dashboard/dashboardPage';
 import PronosticsPage from '@/pages/pronostics/pronosticsPage';
 import ListeNaissancePage from '@/pages/liste-naissance/listeNaissancePage';
@@ -23,10 +25,12 @@ export default function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/invite/:token" element={<InvitePage />} />
         <Route path="/admin-invite/:token" element={<AdminInvitePage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         </Route>
 
         <Route element={<ProtectedRoute />}>

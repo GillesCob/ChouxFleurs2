@@ -20,18 +20,28 @@ enum BabyGender {
 }
 
 model User {
-  id             Int             @id @default(autoincrement())
-  name           String          @db.VarChar(100)
-  email          String          @unique @db.VarChar(150)
-  password       String
-  role           UserRole        @default(guest)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  ownedProjects  Project[]
-  memberships    ProjectMember[]
-  pronostics     Pronostic[]
-  birthListItems BirthListItem[]
-  contributions  Contribution[]
+  id                  Int                   @id @default(autoincrement())
+  name                String                @db.VarChar(100)
+  email               String                @unique @db.VarChar(150)
+  password            String
+  role                UserRole              @default(guest)
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  ownedProjects       Project[]
+  memberships         ProjectMember[]
+  pronostics          Pronostic[]
+  birthListItems      BirthListItem[]
+  contributions       Contribution[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique @db.VarChar(64)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model Project {
