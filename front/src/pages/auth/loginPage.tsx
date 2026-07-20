@@ -101,6 +101,11 @@ export default function LoginPage() {
               {errors.password && (
                 <p className="text-xs text-destructive">{errors.password.message}</p>
               )}
+              <p className="text-right">
+                <Link to="/forgot-password" className="text-xs text-muted-foreground hover:underline">
+                  Mot de passe oublié ?
+                </Link>
+              </p>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
