@@ -34,13 +34,9 @@ const buildSchema = (hasInviteToken: boolean) =>
       path: ['confirmPassword'],
     });
 
-type RegisterFormData = {
-  name: string;
-  email: string;
-  projectName?: string;
-  password: string;
-  confirmPassword: string;
-};
+// Zod 4 : l'entrée (champs du formulaire) et la sortie (données validées) sont typées séparément.
+type RegisterFormInput = z.input<ReturnType<typeof buildSchema>>;
+type RegisterFormData = z.output<ReturnType<typeof buildSchema>>;
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -55,7 +51,7 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<RegisterFormData>({
+  } = useForm<RegisterFormInput, unknown, RegisterFormData>({
     resolver: zodResolver(buildSchema(!!(inviteToken ?? adminInviteToken))),
   });
 
