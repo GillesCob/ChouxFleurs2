@@ -44,8 +44,11 @@ const revealSchema = z.object({
   firstName: z.string().min(1, "Prénom requis"),
 });
 
-type PronosticFormData = z.infer<typeof pronosticSchema>;
-type RevealFormData = z.infer<typeof revealSchema>;
+// Zod 4 : z.coerce.number() a une entrée `unknown` ; entrée du formulaire et sortie validée sont typées séparément.
+type PronosticFormInput = z.input<typeof pronosticSchema>;
+type PronosticFormData = z.output<typeof pronosticSchema>;
+type RevealFormInput = z.input<typeof revealSchema>;
+type RevealFormData = z.output<typeof revealSchema>;
 
 const genderLabels: Record<string, { label: string; class: string }> = {
   boy: { label: "Garçon", class: "bg-blue-100 text-blue-700" },
@@ -381,7 +384,7 @@ export default function PronosticsPage() {
     reset,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<PronosticFormData>({
+  } = useForm<PronosticFormInput, unknown, PronosticFormData>({
     resolver: zodResolver(pronosticSchema),
     defaultValues: { authorName: user?.name ?? "" },
   });
@@ -393,7 +396,7 @@ export default function PronosticsPage() {
     reset: revealReset,
     watch: revealWatch,
     formState: { errors: revealErrors, isSubmitting: revealSubmitting },
-  } = useForm<RevealFormData>({ resolver: zodResolver(revealSchema) });
+  } = useForm<RevealFormInput, unknown, RevealFormData>({ resolver: zodResolver(revealSchema) });
 
   const openEditDialog = (p: IPronostic) => {
     setEditingPronostic(p);

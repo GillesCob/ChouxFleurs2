@@ -91,8 +91,11 @@ const buildContribSchema = (max: number) =>
       .max(max, `Maximum ${max.toFixed(2)} €`),
   });
 
-type ItemFormData = z.infer<typeof itemSchema>;
-type ContribFormData = { participantName: string; amount: number };
+// Zod 4 : z.coerce.number() a une entrée `unknown` ; entrée du formulaire et sortie validée sont typées séparément.
+type ItemFormInput = z.input<typeof itemSchema>;
+type ItemFormData = z.output<typeof itemSchema>;
+type ContribFormInput = z.input<ReturnType<typeof buildContribSchema>>;
+type ContribFormData = z.output<ReturnType<typeof buildContribSchema>>;
 
 // ─── Contribution dialog ──────────────────────────────────────────────────────
 
@@ -114,7 +117,7 @@ function ContributeDialog({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<ContribFormData>({
+  } = useForm<ContribFormInput, unknown, ContribFormData>({
     resolver: zodResolver(buildContribSchema(remaining)),
     defaultValues: { participantName: userName, amount: undefined },
   });
@@ -257,7 +260,7 @@ export default function ListeNaissancePage() {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<ItemFormData>({ resolver: zodResolver(itemSchema) });
+  } = useForm<ItemFormInput, unknown, ItemFormData>({ resolver: zodResolver(itemSchema) });
 
   const onSubmitItem = async (data: ItemFormData) => {
     if (!currentProject) return;
